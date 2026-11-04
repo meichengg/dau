@@ -48,29 +48,53 @@ jobs:
       - name: Show toolchain
         run: xcodebuild -version && xcodegen --version
 
-      - name: Import signing identity
+      - name: Prepare signing identity
         id: sign
         env:
           MACOS_CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
           MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
-          if [[ -z "${MACOS_CERT_P12:-}" ]]; then
-            echo "mode=adhoc" >> "$GITHUB_OUTPUT"
-            echo "No signing secret: building ad-hoc signed (App Group settings will not work)."
-            exit 0
-          fi
-          echo "mode=cert" >> "$GITHUB_OUTPUT"
           KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
-          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security create-keychain -p ci-ci-ci "$KEYCHAIN"
           security set-keychain-settings -lut 21600 "$KEYCHAIN"
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
-          echo "$MACOS_CERT_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
-          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN" -P "$MACOS_CERT_PASSWORD" \
-            -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/productsign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" >/dev/null
+          security unlock-keychain -p ci-ci-ci "$KEYCHAIN"
+          if [[ -n "${MACOS_CERT_P12:-}" ]]; then
+            echo "mode=cert" >> "$GITHUB_OUTPUT"
+            echo "identity=Apple Development" >> "$GITHUB_OUTPUT"
+            echo "$MACOS_CERT_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+            security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN" -P "$MACOS_CERT_PASSWORD" \
+              -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/productsign
+          else
+            # No Apple certificate in this fork's secrets: mint a throwaway self-signed
+            # identity. Its OU carries the team ID so the App Group prefix still matches
+            # and macOS keeps treating the app as team M58DANM3ZP. Gatekeeper already
+            # rejects unnotarized builds either way.
+            echo "mode=selfsigned" >> "$GITHUB_OUTPUT"
+            echo "identity=Dau CI" >> "$GITHUB_OUTPUT"
+            openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
+              -keyout "$RUNNER_TEMP/key.pem" -out "$RUNNER_TEMP/cert.pem" \
+              -subj "/CN=Dau CI/OU=M58DANM3ZP/O=Dau/C=VN" \
+              -addext "keyUsage=critical,digitalSignature" \
+              -addext "extendedKeyUsage=critical,codeSigning" \
+              -addext "basicConstraints=critical,CA:false" 2>/dev/null
+            openssl pkcs12 -export -inkey "$RUNNER_TEMP/key.pem" -in "$RUNNER_TEMP/cert.pem" \
+              -out "$RUNNER_TEMP/id.p12" -passout pass:ci 2>/dev/null
+            security import "$RUNNER_TEMP/id.p12" -k "$KEYCHAIN" -P ci \
+              -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/productsign
+            # A self-signed chain is not trusted by default; trust it for this keychain.
+            sudo security add-trusted-cert -d -r trustRoot -k "$KEYCHAIN" "$RUNNER_TEMP/cert.pem" || true
+            /usr/libexec/PlistBuddy -c "Add :com.apple.developer.team-identifier string M58DANM3ZP" \
+              Apps/Dau/Dau.entitlements
+            /usr/libexec/PlistBuddy -c "Add :com.apple.developer.team-identifier string M58DANM3ZP" \
+              Apps/DauInputMethod/DauInputMethod.entitlements
+          fi
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k ci-ci-ci "$KEYCHAIN" >/dev/null
           security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
           security find-identity -v -p codesigning
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
 
       - name: Generate project
         run: xcodegen generate
@@ -81,21 +105,16 @@ jobs:
       - name: Build Release
         env:
           SIGN_MODE: ${{ steps.sign.outputs.mode }}
+          IDENTITY: ${{ steps.sign.outputs.identity }}
           VERSION: ${{ steps.v.outputs.version }}
           BUILD: ${{ steps.v.outputs.build }}
         run: |
-          if [[ "$SIGN_MODE" == "cert" ]]; then
-            SIGN_ARGS=(CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='Apple Development'
-                       DEVELOPMENT_TEAM=M58DANM3ZP)
-          else
-            SIGN_ARGS=(CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='-' DEVELOPMENT_TEAM=''
-                       APP_GROUP_ID=com.codefastlabs.dau.shared)
-          fi
+          ARGS=(CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$IDENTITY" DEVELOPMENT_TEAM=M58DANM3ZP)
           xcodebuild -project Dau.xcodeproj -scheme Dau -configuration Release \
             -destination 'generic/platform=macOS' \
             -derivedDataPath build/DerivedData.noindex \
             MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$BUILD" \
-            "${SIGN_ARGS[@]}" build
+            "${ARGS[@]}" build
 
       - name: Verify build
         run: |
@@ -103,6 +122,8 @@ jobs:
           lipo -archs "$APP/Contents/MacOS/Dau"
           lipo -archs "$APP/Contents/Library/Input Methods/DauInputMethod.app/Contents/MacOS/DauInputMethod"
           codesign --verify --deep --strict --verbose=2 "$APP"
+          codesign -d --entitlements - --xml "$APP" 2>/dev/null | grep -o 'M58DANM3ZP[^<]*' || true
+          codesign -d --entitlements - --xml "$APP/Contents/Library/Input Methods/DauInputMethod.app" 2>/dev/null | grep -o 'M58DANM3ZP[^<]*' || true
           if codesign -d --entitlements - --xml "$APP/Contents/Library/Input Methods/DauInputMethod.app" 2>/dev/null | grep -q com.apple.security.network; then
             echo "Input method has a network entitlement, contradicting N2"; exit 1
           fi
@@ -112,12 +133,10 @@ jobs:
 
       - name: Package .pkg
         env:
-          SIGN_MODE: ${{ steps.sign.outputs.mode }}
+          IDENTITY: ${{ steps.sign.outputs.identity }}
           VERSION: ${{ steps.v.outputs.version }}
         run: |
-          if [[ "$SIGN_MODE" == "cert" ]]; then
-            export PKG_SIGN_IDENTITY='Apple Development'
-          fi
+          export PKG_SIGN_IDENTITY="$IDENTITY"
           scripts/release/build-pkg.sh "$VERSION"
 
       - name: Upload package

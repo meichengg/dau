@@ -78,8 +78,12 @@ jobs:
               -addext "keyUsage=critical,digitalSignature" \
               -addext "extendedKeyUsage=critical,codeSigning" \
               -addext "basicConstraints=critical,CA:false" 2>/dev/null
-            openssl pkcs12 -export -inkey "$RUNNER_TEMP/key.pem" -in "$RUNNER_TEMP/cert.pem" \
-              -out "$RUNNER_TEMP/id.p12" -passout pass:ci 2>/dev/null
+            # macOS still expects the legacy PKCS#12 MAC/ciphers on import.
+            openssl pkcs12 -export -legacy -inkey "$RUNNER_TEMP/key.pem" -in "$RUNNER_TEMP/cert.pem" \
+              -out "$RUNNER_TEMP/id.p12" -passout pass:ci 2>/dev/null \
+              || openssl pkcs12 -export -inkey "$RUNNER_TEMP/key.pem" -in "$RUNNER_TEMP/cert.pem" \
+                   -keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES -macalg sha1 \
+                   -out "$RUNNER_TEMP/id.p12" -passout pass:ci 2>/dev/null
             security import "$RUNNER_TEMP/id.p12" -k "$KEYCHAIN" -P ci \
               -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/productsign
             # A self-signed chain is not trusted by default; trust it for this keychain.

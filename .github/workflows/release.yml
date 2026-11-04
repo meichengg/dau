@@ -46,7 +46,7 @@ jobs:
           echo "build=${{ github.run_number }}" >> "$GITHUB_OUTPUT"
 
       - name: Show toolchain
-        run: xcodebuild -version && xcodegen --version
+        run: xcodebuild -version
 
       - name: Prepare signing identity
         id: sign

@@ -117,6 +117,7 @@ jobs:
             -destination 'generic/platform=macOS' \
             -derivedDataPath build/DerivedData.noindex \
             MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$BUILD" \
+            APP_GROUP_ID=M58DANM3ZP.com.codefastlabs.dau.shared \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
 
       - name: Sign app

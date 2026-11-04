@@ -113,12 +113,16 @@ jobs:
           VERSION: ${{ steps.v.outputs.version }}
           BUILD: ${{ steps.v.outputs.build }}
         run: |
-          ARGS=(CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$IDENTITY" DEVELOPMENT_TEAM=M58DANM3ZP)
           xcodebuild -project Dau.xcodeproj -scheme Dau -configuration Release \
             -destination 'generic/platform=macOS' \
             -derivedDataPath build/DerivedData.noindex \
             MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$BUILD" \
-            "${ARGS[@]}" build
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+
+      - name: Sign app
+        env:
+          IDENTITY: ${{ steps.sign.outputs.identity }}
+        run: scripts/release/sign-app.sh build/DerivedData.noindex/Build/Products/Release/Dau.app "$IDENTITY"
 
       - name: Verify build
         run: |

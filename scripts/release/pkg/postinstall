@@ -1,0 +1,24 @@
+#!/bin/bash
+# postinstall of Dau-<version>.pkg (scripts/release/build-pkg.sh). Runs as root.
+#
+# 1. Clears com.apple.quarantine on the installed app. The package and the app are not
+#    notarized yet (M7), so Gatekeeper would otherwise warn again at first launch.
+# 2. Stops an older copy of the app and of the input method before the new build starts
+#    (an upgrade). The input method is replaced by the app itself at launch (D37).
+# 3. Opens the app for the console user: it installs and enables the input method, so
+#    the user does not have to logout (D37).
+set -uo pipefail
+APP="/Applications/Dau.app"
+
+/usr/bin/xattr -dr com.apple.quarantine "$APP" 2>/dev/null || true
+/usr/bin/killall Dau 2>/dev/null || true
+/usr/bin/killall DauInputMethod 2>/dev/null || true
+
+console_user="$(/usr/bin/stat -f%Su /dev/console)"
+if [[ -n "$console_user" && "$console_user" != root ]]; then
+  console_uid="$(/usr/bin/id -u "$console_user")"
+  /bin/launchctl asuser "$console_uid" /usr/bin/open -a "$APP" 2>/dev/null \
+    || /usr/bin/sudo -u "$console_user" /usr/bin/open -a "$APP" 2>/dev/null \
+    || true
+fi
+exit 0

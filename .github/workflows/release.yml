@@ -1,0 +1,136 @@
+name: Release package
+
+# Builds the universal Release app and wraps it in a .pkg for /Applications.
+# The package's postinstall clears the quarantine flag and launches the app, which then
+# installs and enables the input method itself (DECISIONS.md D37) — no logout needed.
+# Manual: Actions > Release package > Run workflow. Tag: git push origin v0.1.0.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Marketing version (CFBundleShortVersionString)
+        required: false
+        default: "0.1.0"
+  push:
+    tags:
+      - "v*"
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
+
+jobs:
+  build:
+    runs-on: xcode-27
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version
+        id: v
+        run: |
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          fi
+          echo "build=${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+
+      - name: Show toolchain
+        run: xcodebuild -version && xcodegen --version
+
+      - name: Import signing identity
+        id: sign
+        env:
+          MACOS_CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
+          MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          if [[ -z "${MACOS_CERT_P12:-}" ]]; then
+            echo "mode=adhoc" >> "$GITHUB_OUTPUT"
+            echo "No signing secret: building ad-hoc signed (App Group settings will not work)."
+            exit 0
+          fi
+          echo "mode=cert" >> "$GITHUB_OUTPUT"
+          KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          echo "$MACOS_CERT_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN" -P "$MACOS_CERT_PASSWORD" \
+            -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/productsign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" >/dev/null
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+          security find-identity -v -p codesigning
+
+      - name: Generate project
+        run: xcodegen generate
+
+      - name: Test engine
+        run: swift test --package-path Packages/DauEngine
+
+      - name: Build Release
+        env:
+          SIGN_MODE: ${{ steps.sign.outputs.mode }}
+          VERSION: ${{ steps.v.outputs.version }}
+          BUILD: ${{ steps.v.outputs.build }}
+        run: |
+          if [[ "$SIGN_MODE" == "cert" ]]; then
+            SIGN_ARGS=(CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='Apple Development'
+                       DEVELOPMENT_TEAM=M58DANM3ZP)
+          else
+            SIGN_ARGS=(CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='-' DEVELOPMENT_TEAM=''
+                       APP_GROUP_ID=com.codefastlabs.dau.shared)
+          fi
+          xcodebuild -project Dau.xcodeproj -scheme Dau -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -derivedDataPath build/DerivedData.noindex \
+            MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$BUILD" \
+            "${SIGN_ARGS[@]}" build
+
+      - name: Verify build
+        run: |
+          APP="build/DerivedData.noindex/Build/Products/Release/Dau.app"
+          lipo -archs "$APP/Contents/MacOS/Dau"
+          lipo -archs "$APP/Contents/Library/Input Methods/DauInputMethod.app/Contents/MacOS/DauInputMethod"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          if codesign -d --entitlements - --xml "$APP/Contents/Library/Input Methods/DauInputMethod.app" 2>/dev/null | grep -q com.apple.security.network; then
+            echo "Input method has a network entitlement, contradicting N2"; exit 1
+          fi
+          if codesign -d --entitlements - --xml "$APP/Contents/Library/Input Methods/DauInputMethod.app" 2>/dev/null | grep -q get-task-allow; then
+            echo "Release build still carries get-task-allow"; exit 1
+          fi
+
+      - name: Package .pkg
+        env:
+          SIGN_MODE: ${{ steps.sign.outputs.mode }}
+          VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          if [[ "$SIGN_MODE" == "cert" ]]; then
+            export PKG_SIGN_IDENTITY='Apple Development'
+          fi
+          scripts/release/build-pkg.sh "$VERSION"
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dau-${{ steps.v.outputs.version }}
+          path: build/pkg/out/*.pkg
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Attach to release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/pkg/out/*.pkg
+          generate_release_notes: true

@@ -14,7 +14,7 @@ set -euo pipefail
 
 APP="${1:?usage: sign-app.sh <app> <identity>}"
 IDENTITY="${2:?usage: sign-app.sh <app> <identity>}"
-GROUP_ID="M58DANM3ZP.com.codefastlabs.dau.shared"
+GROUP_ID="433PH64SVW.com.codefastlabs.dau.shared"
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 IM="$APP/Contents/Library/Input Methods/DauInputMethod.app"
 WORK="$(mktemp -d)"
@@ -23,8 +23,8 @@ trap 'rm -rf "$WORK"' EXIT
 render() { # <entitlements template> <output> [with-team]
   sed "s|\$(APP_GROUP_ID)|$GROUP_ID|g" "$1" > "$2"
   if [[ "${3:-}" == with-team ]]; then
-    /usr/libexec/PlistBuddy -c "Set :com.apple.developer.team-identifier M58DANM3ZP" "$2" 2>/dev/null \
-      || /usr/libexec/PlistBuddy -c "Add :com.apple.developer.team-identifier string M58DANM3ZP" "$2" >/dev/null
+    /usr/libexec/PlistBuddy -c "Set :com.apple.developer.team-identifier 433PH64SVW" "$2" 2>/dev/null \
+      || /usr/libexec/PlistBuddy -c "Add :com.apple.developer.team-identifier string 433PH64SVW" "$2" >/dev/null
   fi
 }
 

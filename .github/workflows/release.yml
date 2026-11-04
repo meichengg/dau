@@ -68,13 +68,13 @@ jobs:
           else
             # No Apple certificate in this fork's secrets: mint a throwaway self-signed
             # identity. Its OU carries the team ID so the App Group prefix still matches
-            # and macOS keeps treating the app as team M58DANM3ZP. Gatekeeper already
+            # and macOS keeps treating the app as team 433PH64SVW. Gatekeeper already
             # rejects unnotarized builds either way.
             echo "mode=selfsigned" >> "$GITHUB_OUTPUT"
             echo "identity=Dau CI" >> "$GITHUB_OUTPUT"
             openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
               -keyout "$RUNNER_TEMP/key.pem" -out "$RUNNER_TEMP/cert.pem" \
-              -subj "/CN=Dau CI/OU=M58DANM3ZP/O=Dau/C=VN" \
+              -subj "/CN=Dau CI/OU=433PH64SVW/O=Dau/C=VN" \
               -addext "keyUsage=critical,digitalSignature" \
               -addext "extendedKeyUsage=critical,codeSigning" \
               -addext "basicConstraints=critical,CA:false" 2>/dev/null
@@ -113,7 +113,7 @@ jobs:
             -destination 'generic/platform=macOS' \
             -derivedDataPath build/DerivedData.noindex \
             MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$BUILD" \
-            APP_GROUP_ID=M58DANM3ZP.com.codefastlabs.dau.shared \
+            APP_GROUP_ID=433PH64SVW.com.codefastlabs.dau.shared \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
 
       - name: Sign app
@@ -127,8 +127,8 @@ jobs:
           lipo -archs "$APP/Contents/MacOS/Dau"
           lipo -archs "$APP/Contents/Library/Input Methods/DauInputMethod.app/Contents/MacOS/DauInputMethod"
           codesign --verify --deep --strict --verbose=2 "$APP"
-          codesign -d --entitlements - --xml "$APP" 2>/dev/null | grep -o 'M58DANM3ZP[^<]*' || true
-          codesign -d --entitlements - --xml "$APP/Contents/Library/Input Methods/DauInputMethod.app" 2>/dev/null | grep -o 'M58DANM3ZP[^<]*' || true
+          codesign -d --entitlements - --xml "$APP" 2>/dev/null | grep -o '433PH64SVW[^<]*' || true
+          codesign -d --entitlements - --xml "$APP/Contents/Library/Input Methods/DauInputMethod.app" 2>/dev/null | grep -o '433PH64SVW[^<]*' || true
           if codesign -d --entitlements - --xml "$APP/Contents/Library/Input Methods/DauInputMethod.app" 2>/dev/null | grep -q com.apple.security.network; then
             echo "Input method has a network entitlement, contradicting N2"; exit 1
           fi

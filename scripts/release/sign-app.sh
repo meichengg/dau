@@ -23,7 +23,8 @@ trap 'rm -rf "$WORK"' EXIT
 render() { # <entitlements template> <output> [with-team]
   sed "s|\$(APP_GROUP_ID)|$GROUP_ID|g" "$1" > "$2"
   if [[ "${3:-}" == with-team ]]; then
-    /usr/libexec/PlistBuddy -c "Add :com.apple.developer.team-identifier string M58DANM3ZP" "$2" >/dev/null
+    /usr/libexec/PlistBuddy -c "Set :com.apple.developer.team-identifier M58DANM3ZP" "$2" 2>/dev/null \
+      || /usr/libexec/PlistBuddy -c "Add :com.apple.developer.team-identifier string M58DANM3ZP" "$2" >/dev/null
   fi
 }
 

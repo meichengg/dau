@@ -4,6 +4,7 @@ name: Release package
 # The package's postinstall clears the quarantine flag and launches the app, which then
 # installs and enables the input method itself (DECISIONS.md D37) — no logout needed.
 # Manual: Actions > Release package > Run workflow. Tag: git push origin v0.1.0.
+# Automatic: the sync-upstream workflow calls this after every upstream merge.
 on:
   workflow_dispatch:
     inputs:
@@ -48,17 +49,21 @@ jobs:
       - name: Show toolchain
         run: xcodebuild -version
 
+      # The App Group name is "<team>.com.codefastlabs.dau.shared" and the team is a property
+      # of the certificate, not of the repo, so it is derived here rather than hard-coded
+      # (scripts/release/team-id.sh). Xcode's TeamIdentifierPrefix is empty in an unsigned
+      # build, which is why APP_GROUP_ID is passed explicitly below.
       - name: Prepare signing identity
         id: sign
         env:
           MACOS_CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
           MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
           KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
           security create-keychain -p ci-ci-ci "$KEYCHAIN"
           security set-keychain-settings -lut 21600 "$KEYCHAIN"
           security unlock-keychain -p ci-ci-ci "$KEYCHAIN"
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
           if [[ -n "${MACOS_CERT_P12:-}" ]]; then
             echo "mode=cert" >> "$GITHUB_OUTPUT"
             echo "identity=Apple Development" >> "$GITHUB_OUTPUT"
@@ -67,9 +72,10 @@ jobs:
               -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/productsign
           else
             # No Apple certificate in this fork's secrets: mint a throwaway self-signed
-            # identity. Its OU carries the team ID so the App Group prefix still matches
-            # and macOS keeps treating the app as team 433PH64SVW. Gatekeeper already
-            # rejects unnotarized builds either way.
+            # identity with the team OU. A self-signed signature still reports
+            # "TeamIdentifier=not set", so the App Group is rejected and sign-app.sh drops
+            # the team entitlement; the app installs and runs. Gatekeeper already rejects
+            # unnotarized builds either way.
             echo "mode=selfsigned" >> "$GITHUB_OUTPUT"
             echo "::warning::No certificate secret: the app will install and run but the App Group (shared settings) is rejected. See scripts/release/README.md."
             echo "identity=Dau CI" >> "$GITHUB_OUTPUT"
@@ -91,8 +97,23 @@ jobs:
             sudo security add-trusted-cert -d -r trustRoot -k "$KEYCHAIN" "$RUNNER_TEMP/cert.pem" || true
           fi
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k ci-ci-ci "$KEYCHAIN" >/dev/null
-          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
           security find-identity -v -p codesigning
+
+      # A self-signed identity has no team, and neither does its signature, so fall back to
+      # the fork's team: the group name stays stable and sign-app.sh drops the team
+      # entitlement later because the signature cannot carry one.
+      - name: Resolve App Group
+        id: group
+        env:
+          IDENTITY: ${{ steps.sign.outputs.identity }}
+        run: |
+          team=$(scripts/release/team-id.sh "$IDENTITY")
+          if [[ -z "$team" ]]; then
+            team=433PH64SVW
+            echo "::warning::The signature carries no team: using $team for the App Group name."
+          fi
+          echo "Signing team: $team"
+          echo "group=$team.com.codefastlabs.dau.shared" >> "$GITHUB_OUTPUT"
 
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -105,35 +126,48 @@ jobs:
 
       - name: Build Release
         env:
-          SIGN_MODE: ${{ steps.sign.outputs.mode }}
           IDENTITY: ${{ steps.sign.outputs.identity }}
           VERSION: ${{ steps.v.outputs.version }}
           BUILD: ${{ steps.v.outputs.build }}
+          GROUP_ID: ${{ steps.group.outputs.group }}
         run: |
           xcodebuild -project Dau.xcodeproj -scheme Dau -configuration Release \
             -destination 'generic/platform=macOS' \
             -derivedDataPath build/DerivedData.noindex \
             MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$BUILD" \
-            APP_GROUP_ID=433PH64SVW.com.codefastlabs.dau.shared \
+            APP_GROUP_ID="$GROUP_ID" \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
 
       - name: Sign app
         env:
           IDENTITY: ${{ steps.sign.outputs.identity }}
+          GROUP_ID: ${{ steps.group.outputs.group }}
         run: scripts/release/sign-app.sh build/DerivedData.noindex/Build/Products/Release/Dau.app "$IDENTITY"
 
       - name: Verify build
+        env:
+          GROUP_ID: ${{ steps.group.outputs.group }}
         run: |
           APP="build/DerivedData.noindex/Build/Products/Release/Dau.app"
+          IM="$APP/Contents/Library/Input Methods/DauInputMethod.app"
           lipo -archs "$APP/Contents/MacOS/Dau"
-          lipo -archs "$APP/Contents/Library/Input Methods/DauInputMethod.app/Contents/MacOS/DauInputMethod"
+          lipo -archs "$IM/Contents/MacOS/DauInputMethod"
           codesign --verify --deep --strict --verbose=2 "$APP"
-          codesign -d --entitlements - --xml "$APP" 2>/dev/null | grep -o '433PH64SVW[^<]*' || true
-          codesign -d --entitlements - --xml "$APP/Contents/Library/Input Methods/DauInputMethod.app" 2>/dev/null | grep -o '433PH64SVW[^<]*' || true
-          if codesign -d --entitlements - --xml "$APP/Contents/Library/Input Methods/DauInputMethod.app" 2>/dev/null | grep -q com.apple.security.network; then
+          # Unrendered $(PLACEHOLDER) in a signed entitlement is a bug, not a style issue.
+          for e in "$APP" "$IM"; do
+            codesign -d --entitlements - --xml "$e" 2>/dev/null > /tmp/ents.plist || true
+            if grep -q '\$(' /tmp/ents.plist; then
+              echo "unrendered placeholder in $e:"; grep -o '\$([A-Z_]*)' /tmp/ents.plist; exit 1
+            fi
+            if grep -q '<key>com.apple.security.application-groups' /tmp/ents.plist; then
+              grep -q "$GROUP_ID" /tmp/ents.plist || { echo "App Group is not $GROUP_ID in $e"; exit 1; }
+            fi
+          done
+          codesign -d --entitlements - --xml "$APP" 2>/dev/null | grep -o "$GROUP_ID" || true
+          if codesign -d --entitlements - --xml "$IM" 2>/dev/null | grep -q com.apple.security.network; then
             echo "Input method has a network entitlement, contradicting N2"; exit 1
           fi
-          if codesign -d --entitlements - --xml "$APP/Contents/Library/Input Methods/DauInputMethod.app" 2>/dev/null | grep -q get-task-allow; then
+          if codesign -d --entitlements - --xml "$IM" 2>/dev/null | grep -q get-task-allow; then
             echo "Release build still carries get-task-allow"; exit 1
           fi
 

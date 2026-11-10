@@ -17,6 +17,7 @@ Thư mục theo mục đích:
 | `scripts/snapshot-settings/` | test đơn vị app chủ và công cụ chụp Cài đặt |
 | `scripts/research/` | công cụ cho tài liệu nghiên cứu: trích dữ liệu từ dự án khác (chỉ đọc file, không chạy mã của họ), so Dấu với bộ gõ có sẵn của macOS bằng cách gõ thật (`compare-ims/`) |
 | `scripts/design/` | chụp canvas thiết kế thành bản trong repo (`docs/ui/canvas/`) |
+| `scripts/release/` | đóng gói và cài `.pkg` phát hành (chỉ CI và máy cài bản tải về dùng) |
 
 Mỗi script tự mô tả ở phần đầu file: dòng chú thích đầu, `# Usage:` và `# Side effects:`. Không có bảng liệt kê riêng.
 

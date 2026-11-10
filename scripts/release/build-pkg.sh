@@ -1,47 +1,51 @@
-#!/bin/bash
-# Wraps an already built Release Dau.app in a .pkg that installs it into /Applications
-# and then launches it for the logged-in user (scripts/release/pkg/postinstall).
+#!/bin/zsh
+# Wraps an already built Release Dau.app in a .pkg that installs it into /Applications and
+# then launches it for the logged-in user (scripts/release/pkg/postinstall).
 #
 # Usage: scripts/release/build-pkg.sh <version>
-#   1. Code sign the package with this identity (skipped when unset). An "Apple
-#      Development" identity cannot always sign packages; the warning path keeps the
-#      unsigned package.
+#   1. Code sign the package with PKG_SIGN_IDENTITY (skipped when unset). An "Apple
+#      Development" identity cannot sign packages; the warning path keeps the unsigned one.
 #   2. Version written into the package receipt.
-#
-# Side effects: writes build/pkg/ (git-ignored), nothing outside the repo.
-set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-VERSION="${1:?usage: build-pkg.sh <version>}"
-APP="$ROOT/build/DerivedData.noindex/Build/Products/Release/Dau.app"
-WORK="$ROOT/build/pkg/work"
-OUT="$ROOT/build/pkg/out"
-[[ -d "$APP" ]] || { echo "Không thấy $APP — build Release trước." >&2; exit 1; }
+# Side effects: none (writes build/pkg/, git-ignored, nothing outside the repo)
+set -uo pipefail
+setopt extendedglob
 
-rm -rf "$WORK"
-mkdir -p "$WORK/payload" "$OUT"
-ditto "$APP" "$WORK/payload/Dau.app"
-cp "$ROOT/scripts/release/pkg/postinstall" "$WORK/postinstall"
-chmod +x "$WORK/postinstall"
+source "$0:A:h/../lib/log.sh"
 
-PKG="$OUT/Dau-$VERSION.pkg"
+version=$1
+[[ -n $version ]] || log_die 2 'thiếu số phiên bản' '' "$(log_usage $0)"
+root=${0:A:h:h:h}
+app="$root/build/DerivedData.noindex/Build/Products/Release/Dau.app"
+work="$root/build/pkg/work"
+out="$root/build/pkg/out"
+[[ -d $app ]] || log_die "không thấy $app — build Release trước."
+
+rm -rf "$work"
+mkdir -p "$work/payload" "$out"
+ditto "$app" "$work/payload/Dau.app"
+cp "$root/scripts/release/pkg/postinstall" "$work/postinstall"
+chmod +x "$work/postinstall"
+
+pkg="$out/Dau-$version.pkg"
+log_step "Đóng gói $version"
 pkgbuild \
-  --root "$WORK/payload" \
+  --root "$work/payload" \
   --identifier com.codefastlabs.dau.pkg \
-  --version "$VERSION" \
+  --version "$version" \
   --install-location /Applications \
-  --scripts "$WORK" \
-  "$PKG"
+  --scripts "$work" \
+  "$pkg" || log_die 'pkgbuild hỏng.'
 
-if [[ -n "${PKG_SIGN_IDENTITY:-}" ]]; then
-  if productsign --sign "$PKG_SIGN_IDENTITY" "$PKG" "$WORK/signed.pkg" 2>"$WORK/productsign.log"; then
-    mv -f "$WORK/signed.pkg" "$PKG"
-    echo "Đã ký gói bằng: $PKG_SIGN_IDENTITY"
+if [[ -n ${PKG_SIGN_IDENTITY:-} ]]; then
+  if productsign --sign "$PKG_SIGN_IDENTITY" "$pkg" "$work/signed.pkg" 2>"$work/productsign.log"; then
+    mv -f "$work/signed.pkg" "$pkg"
+    log_ok "Đã ký gói bằng: $PKG_SIGN_IDENTITY"
   else
-    echo "Cảnh báo: không ký được gói bằng \"$PKG_SIGN_IDENTITY\", giữ gói chưa ký:" >&2
-    sed "s/^/    /" "$WORK/productsign.log" >&2
+    log_warn "Không ký được gói bằng \"$PKG_SIGN_IDENTITY\", giữ gói chưa ký"
+    sed "s/^/    /" "$work/productsign.log" | while IFS= read -r l; do log_hint "${l#    }"; done
   fi
 fi
 
-echo
-echo "Gói: $PKG"
-shasum -a 256 "$PKG"
+log_ok "Gói: $pkg"
+log_detail "sha256: $(shasum -a 256 "$pkg" | cut -d' ' -f1)"
+log_done

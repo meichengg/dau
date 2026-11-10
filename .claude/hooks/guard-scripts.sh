@@ -30,6 +30,7 @@ typeset -A guarded=(
   [scripts/dev/install-app.sh]="always"
   [scripts/dev/install-input-method.sh]="unless --build-only"
   [scripts/dev/clean-dau.sh]="with --yes"
+  [scripts/release/install-pkg.sh]="always"
 )
 runners=(zsh bash sh source . env time nohup exec command)
 

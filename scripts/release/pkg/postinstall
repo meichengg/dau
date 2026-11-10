@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 # postinstall of Dau-<version>.pkg (scripts/release/build-pkg.sh). Runs as root.
 #
 # 1. Clears com.apple.quarantine on the installed app. The package and the app are not

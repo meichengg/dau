@@ -25,9 +25,13 @@ fork nằm ở `docs/history/LOG-FORK-CI.md` và không bao giờ đụng `PROGR
 
 Tên App Group là `<team>.com.codefastlabs.dau.shared`, team là thuộc tính của chứng chỉ chứ
 không phải của repo, nên CI đọc team từ chứng chỉ (`scripts/release/team-id.sh`) thay vì
-viết cứng. Chữ ký tự ký báo `TeamIdentifier=not set`; `sign-app.sh` bỏ
-`com.apple.developer.team-identifier` trong trường hợp đó vì gắn nó vào thì kernel giết app
-lúc exec.
+viết cứng.
+
+**Không thêm `com.apple.developer.team-identifier`.** Đó là entitlement hạn chế; không có
+hồ sơ cấp phép nhúng trong bundle thì `amfid` từ chối chạy app ("No matching profile found",
+chữ ký không qua kiểm tra), app chết ngay lúc exec. Chỉ cần `com.apple.security.application-groups`:
+tiền tố nhóm vốn khớp team trong chữ ký nên `containermanagerd` chấp thuận (đo 10/11/2026,
+macOS 27.2). `sign-app.sh` chặn nếu còn key đó trong chữ ký.
 
 Bật chế độ có team: xuất chứng chỉ một lần.
 

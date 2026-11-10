@@ -7,10 +7,15 @@
 # The team comes from the certificate behind the identity, never from a constant: it decides
 # the App Group name. A real Apple identity carries it, so the group prefix matches the
 # signature and macOS lets the app use the shared container. A throwaway self-signed identity
-# has no team ID in the signature ("TeamIdentifier=not set"); carrying
-# com.apple.developer.team-identifier with such a signature makes the kernel kill the app at
-# exec, so the entitlement is dropped when the signature has no team. The App Group does not
-# work then (containermanagerd rejects it) — the app still installs and runs.
+# has no team ID in the signature ("TeamIdentifier=not set") and containermanagerd rejects the
+# group — the app still installs and runs.
+#
+# com.apple.developer.team-identifier is NOT added: it is a restricted entitlement and amfid
+# refuses to exec a build that has it without a provisioning profile ("No matching profile
+# found", code signature validation failed fatally). The App Group alone is not restricted,
+# because its prefix already matches the signature team — measured 10/11/2026 on macOS 27.2:
+# with the entitlement the app dies at launch, without it containermanagerd APPROVED the
+# container.
 # Side effects: none
 #
 # Usage: scripts/release/sign-app.sh </path/to/Dau.app> <signing identity>
@@ -36,11 +41,8 @@ log_detail "identity: $identity"
 log_detail "team: ${team:-không có (App Group sẽ không chạy)}"
 log_detail "App Group: $group"
 
-render() { # <template> <output> <bundle id> [with-team]
+render() { # <template> <output> <bundle id>
   sed -e "s|\$(APP_GROUP_ID)|$group|g" -e "s|\$(PRODUCT_BUNDLE_IDENTIFIER)|$3|g" "$1" > "$2"
-  [[ ${4:-} == with-team ]] || return 0
-  /usr/libexec/PlistBuddy -c "Set :com.apple.developer.team-identifier $team" "$2" 2>/dev/null \
-    || /usr/libexec/PlistBuddy -c "Add :com.apple.developer.team-identifier string $team" "$2" >/dev/null
 }
 
 render_im() {
@@ -58,17 +60,17 @@ sign_all() {
 }
 
 render_im
-render "$root/Apps/Dau/Dau.entitlements" "$work/app.plist" "$prefix" with-team
+render "$root/Apps/Dau/Dau.entitlements" "$work/app.plist" "$prefix"
 sign_all
+
+for e in "$app" "$im"; do
+  [[ $(codesign -d --entitlements - --xml "$e" 2>/dev/null) != *team-identifier* ]] \
+    || log_die "chữ ký $e còn com.apple.developer.team-identifier (amfid sẽ giết app lúc exec)."
+done
 
 # No pipe: grep -q under pipefail can end on SIGPIPE and report failure.
 if [[ $(codesign -dvvv "$app" 2>&1) == *'TeamIdentifier=not set'* ]]; then
-  log_warn 'Chữ ký không có Team ID: bỏ com.apple.developer.team-identifier (App Group sẽ không chạy).'
-  render_im
-  render "$root/Apps/Dau/Dau.entitlements" "$work/app.plist" "$prefix"
-  sign_all
-  [[ $(codesign -d --entitlements - --xml "$app" 2>/dev/null) != *team-identifier* ]] \
-    || log_die 'vẫn còn com.apple.developer.team-identifier dù chữ ký không có team.'
+  log_warn 'Chữ ký không có Team ID: App Group sẽ bị từ chối (app vẫn cài và chạy).'
 fi
 
 codesign --verify --deep --strict --verbose=2 "$app" || log_die "chữ ký không hợp lệ."

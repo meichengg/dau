@@ -2,21 +2,23 @@ import Foundation
 import Testing
 @testable import DauShared
 
-/// Each test uses its own suite so tests never touch real settings. The name is fixed
-/// per test (not a UUID): an emptied suite still leaves its plist in
-/// ~/Library/Preferences, so UUID names left a new file on every run.
+/// Each test uses its own suite so tests never touch real settings. The suite name is an
+/// absolute path in the temporary directory, so its plist lives there (a plain name would
+/// leave an empty plist in ~/Library/Preferences that removing the domain does not delete).
 final class TemporarySuite {
     let name: String
     let defaults: UserDefaults
 
     init(_ test: String = #function) {
-        name = "dau.tests." + test.filter { $0.isLetter || $0.isNumber }
+        let file = "dau-tests-" + test.filter { $0.isLetter || $0.isNumber }
+        name = FileManager.default.temporaryDirectory.appendingPathComponent(file).path
         defaults = UserDefaults(suiteName: name)!
         defaults.removePersistentDomain(forName: name)
     }
 
     deinit {
         defaults.removePersistentDomain(forName: name)
+        try? FileManager.default.removeItem(atPath: name + ".plist")
     }
 }
 

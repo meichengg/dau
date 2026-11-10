@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Báo ứng dụng gõ lỗi</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.sw{appearance:none;-webkit-appearance:none;width:40px;height:24px;border-radius:12px;background:#c7c7cc;margin:0;position:relative;flex:none;cursor:default}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:10px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sw:checked{background:var(--acc)}
+.sw:checked::after{left:18px}
+.pop{all:unset;box-sizing:border-box;height:26px;padding:0 10px 0 12px;border-radius:999px;background:#fff;border:1px solid rgba(0,0,0,.12);box-shadow:0 1px 1px rgba(0,0,0,.06);font-size:13px;display:inline-flex;align-items:center;gap:6px;color:#1d1d1f;cursor:default;white-space:nowrap}
+.btn{all:unset;box-sizing:border-box;height:30px;padding:0 16px;border-radius:999px;font-size:13px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;background:rgba(0,0,0,.06);color:#1d1d1f;cursor:default;white-space:nowrap;text-decoration:none}
+.btn.pri{background:var(--acc);color:#fff}
+.btn.danger{color:#b42318}
+.seg{display:flex;padding:2px;border-radius:999px;background:rgba(0,0,0,.07);gap:2px}
+.sg{all:unset;box-sizing:border-box;flex:1;height:26px;padding:0 14px;border-radius:999px;font-size:13px;display:flex;align-items:center;justify-content:center;color:#1d1d1f;cursor:default;white-space:nowrap}
+.sg.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15);font-weight:600}
+.card{background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06)}
+.row{display:flex;align-items:center;gap:12px;min-height:48px;padding:10px 16px;box-sizing:border-box;font-size:13px;color:#1d1d1f}
+.sep{height:1px;background:rgba(0,0,0,.07);margin-left:16px}
+.hint{font-size:12px;color:#6e6e73;line-height:1.4}
+.sec{font-size:13px;font-weight:600;color:#1d1d1f;padding:0 4px}
+.side{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:9px;height:32px;padding:0 8px;border-radius:9px;font-size:13px;color:#1d1d1f;cursor:default;text-decoration:none}
+.side.on{background:var(--acc);color:#fff;font-weight:500}
+.tile{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex:none}
+.kc{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 6px;box-sizing:border-box;border-radius:6px;background:#fff;border:1px solid rgba(0,0,0,.14);box-shadow:0 1px 0 rgba(0,0,0,.12);font-size:12px;color:#1d1d1f}
+.chip{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;font-size:12px;background:rgba(0,0,0,.06);color:#3a3a3c}
+.mi{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:6px;width:100%;height:26px;padding:0 10px;border-radius:7px;font-size:13px;color:#1d1d1f;cursor:default}
+.mi.on{background:var(--acc);color:#fff}
+.mk{width:14px;flex:none;display:inline-flex}
+.k{margin-left:auto;color:#6e6e73;font-size:12px}
+
+</style>
+</helmet>
+<div style="width: 760px; height: 660px; position: relative; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; --acc: {{accent}}">
+<div aria-hidden="true" style="position: absolute; inset: 0; background: #1c2f4a; overflow: hidden">
+<div style="position: absolute; width: 620px; height: 620px; border-radius: 50%; background: #2d6cb5; left: -160px; top: -220px"></div>
+<div style="position: absolute; width: 520px; height: 520px; border-radius: 50%; background: #e08a3c; right: -140px; bottom: -200px"></div>
+<div style="position: absolute; width: 380px; height: 380px; border-radius: 50%; background: #6a4fa3; right: 120px; top: -120px"></div>
+<div style="position: absolute; width: 300px; height: 300px; border-radius: 50%; background: #2f8f7a; left: 180px; bottom: -150px"></div>
+</div>
+<div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(0,0,0,0.25)"></div>
+<div role="dialog" aria-labelledby="rt" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 520px; box-sizing: border-box; padding: 24px; border-radius: 22px; background: #f5f5f7; box-shadow: 0 28px 70px rgba(0,0,0,0.45); display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px"><h1 id="rt" style="margin: 0; font-size: 17px; font-weight: 700; color: #1d1d1f">Báo ứng dụng gõ lỗi</h1>
+<p style="margin: 0; font-size: 12px; line-height: 1.5; color: #5e5e63">Bạn xem lại trước khi gửi. Báo lỗi trên GitHub được đăng công khai; không có tài khoản GitHub thì sao chép nội dung và gửi qua email.</p></div>
+<div role="note" style="display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; background: rgba(10,100,216,0.07)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A64D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 7.5h.01"></path></svg><span style="display: flex; flex-direction: column; gap: 2px; font-size: 12px; line-height: 1.45; color: #1d1d1f"><span style="font-weight: 600">Ứng dụng không chọn được Dấu?</span><span>Ứng dụng đó có thể còn giữ danh sách nguồn đầu vào cũ. Đăng xuất ( › Log Out) rồi đăng nhập lại một lần, sau đó thử lại; thoát rồi mở lại ứng dụng thì chưa đủ. Vẫn lỗi thì gửi báo lỗi bên dưới.</span></span></div>
+<div class="card" style="padding: 6px 0">
+<div class="row"><label for="ap" style="width: 110px; font-weight: 500">Ứng dụng</label><select id="ap" style="height: 30px; box-sizing: border-box; border-radius: 8px; border: 1px solid rgba(0,0,0,0.14); background: #fff; padding: 0 10px; font-size: 13px; font-family: inherit; color: #1d1d1f; flex: 1"><option>Google Chrome</option></select></div>
+<div class="sep"></div>
+<div class="row"><label for="st" style="width: 110px; font-weight: 500">Trang web</label><input id="st" value="docs.google.com" style="height: 30px; box-sizing: border-box; border-radius: 8px; border: 1px solid rgba(0,0,0,0.14); background: #fff; padding: 0 10px; font-size: 13px; font-family: inherit; color: #1d1d1f; flex: 1"></div>
+<div class="sep"></div>
+<div class="row" style="align-items: flex-start"><span style="width: 110px; font-weight: 500; padding-top: 4px">Lỗi gặp phải</span><div class="seg" role="radiogroup" aria-label="Lỗi gặp phải" style="flex: 1; flex-wrap: wrap; border-radius: 14px"><button class="sg on" role="radio">Mất chữ</button><button class="sg" role="radio">Lặp chữ</button><button class="sg" role="radio">Sai dấu</button><button class="sg" role="radio">Khác</button></div></div>
+<div class="sep"></div>
+<div class="row"><label for="ex" style="width: 110px; font-weight: 500">Ví dụ đã gõ</label><input id="ex" value="tieengs Vieetj" style="height: 30px; box-sizing: border-box; border-radius: 8px; border: 1px solid rgba(0,0,0,0.14); background: #fff; padding: 0 10px; font-size: 13px; font-family: inherit; color: #1d1d1f; flex: 1"></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; padding: 0 4px"><span style="font-size: 12px; font-weight: 600; color: #1d1d1f">Gửi kèm</span><span class="hint">macOS 27 · Dấu 1.0.0 (a1b2c3d) · Telex · Không gạch chân · Chrome [phiên bản]. Không gửi nội dung bạn đã gõ.</span></div>
+<div style="display: flex; gap: 8px"><button class="btn">Huỷ</button><span style="flex: 1"></span><button class="btn">Sao chép nội dung</button><button class="btn pri">Mở trên GitHub</button></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0A64D8","options":["#0A64D8","#7A3FD1","#C2410C","#1F7A4D"]},"$preview":{"width":760,"height":660}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent ?? '#0A64D8' };
+}
+}
+</script>
+</body>
+</html>

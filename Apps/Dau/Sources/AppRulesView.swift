@@ -33,24 +33,24 @@ struct AppRulesView: View {
         let rules = model.settings.appRules
         let visibleRules = matching(rules)
         let visibleSuggestions = matching(suggestions)
-        SettingsPage(SettingsSection.apps.title, search: $query, searchPrompt: Text("Tìm ứng dụng"),
-                     add: HeaderAdd(label: String(localized: "Thêm ứng dụng"), action: { isAdding = true })) {
-            Section(header: Text("Nguồn đầu vào theo cửa sổ")) {
+        SettingsPage(search: $query, searchPrompt: Text("Search apps"),
+                     add: HeaderAdd(label: String(localized: "Add App"), action: { isAdding = true })) {
+            Section(header: Text("Input source per window")) {
                 LabeledContent {
                     HStack(spacing: 8) {
                         // Not readable: no value rather than a guess (N5).
                         if let perWindow {
-                            (perWindow ? Text("Đang bật") : Text("Đang tắt"))
+                            (perWindow ? Text("On") : Text("Off"))
                                 .foregroundStyle(.secondary)
                                 .fixedSize()
                         }
-                        Button("Đổi…") { SystemSettings.openKeyboard() }
-                            .accessibilityLabel(Text("Đổi tuỳ chọn nhớ nguồn đầu vào theo từng cửa sổ"))
-                            .accessibilityHint(Text("Mở \(SystemUINames.system().systemSettings)"))
+                        Button("Change…") { SystemSettings.openKeyboard() }
+                            .accessibilityLabel(Text("Change the option that remembers the input source for each window"))
+                            .accessibilityHint(Text("Open \(SystemUINames.system().systemSettings)"))
                     }
                 } label: {
-                    Text("Nhớ nguồn đầu vào theo từng cửa sổ")
-                    Text("Tuỳ chọn “\(SystemUINames.system().automaticallySwitchOption)” của macOS")
+                    Text("Remember the input source for each window")
+                    Text("macOS option “\(SystemUINames.system().automaticallySwitchOption)”")
                 }
                 .layoutProbe("firstRow")
             }
@@ -59,11 +59,11 @@ struct AppRulesView: View {
                 installedSuggestions = AppDirectory.installedSuggestions(in: model.compatibility)
             }
 
-            Section(header: Text("Quy tắc riêng")) {
+            Section(header: Text("App rules")) {
                 if rules.isEmpty {
-                    Text("Chưa có quy tắc riêng. Bấm + để thêm.")
+                    Text("No app rules yet. Click + to add one.")
                 } else if visibleRules.isEmpty {
-                    Text("Không có ứng dụng nào khớp.")
+                    Text("No matching apps.")
                 } else {
                     ForEach(visibleRules) { rule in
                         AppRuleRow(rule: rule)
@@ -72,10 +72,10 @@ struct AppRulesView: View {
                             .onTapGesture { focusedRule = rule.bundleID }
                             .onDeleteCommand { remove(rule) }
                             .contextMenu {
-                                Button("Xoá quy tắc", role: .destructive) { remove(rule) }
+                                Button("Remove Rule", role: .destructive) { remove(rule) }
                             }
                             .accessibilityActions {
-                                Button("Xoá quy tắc") { remove(rule) }
+                                Button("Remove Rule") { remove(rule) }
                             }
                     }
                 }
@@ -98,8 +98,8 @@ struct AppRulesView: View {
                     // says when to choose it, not that it always helps. Wording approved
                     // by the user (30/10/2026).
                     SectionHeader(
-                        title: Text("Đề xuất"),
-                        description: Text("Ứng dụng có nhãn “Đề xuất” có thể gõ sai khi bạn gõ rất nhanh. Chỉ chọn “Có gạch chân” khi một ứng dụng bị lỗi chữ lúc gõ."))
+                        title: Text("Suggested"),
+                        description: Text("Text may come out wrong in apps labeled “Suggested” when you type very fast. Choose “Underline” only if an app garbles text as you type."))
                 }
             }
         }
@@ -109,6 +109,8 @@ struct AppRulesView: View {
         .sheet(isPresented: $isAdding) {
             AddAppRuleSheet()
         }
+        // The window's Back/Forward stay off under the sheet (`SettingsWindow`).
+        .sheetShown(isAdding)
     }
 
     private func remove(_ rule: AppRule) {
@@ -128,10 +130,10 @@ struct AppRuleRow: View {
         let name = AppDirectory.name(for: rule)
         LabeledContent {
             Picker(selection: underlineBinding) {
-                Text("Không gạch chân").tag(false)
-                Text("Có gạch chân").tag(true)
+                Text("No Underline").tag(false)
+                Text("Underline").tag(true)
             } label: {
-                Text("Gạch chân khi gõ trong \(name)")
+                Text("Underline while typing in \(name)")
             }
             .labelsHidden()
             .pickerStyle(.menu)
@@ -142,7 +144,7 @@ struct AppRuleRow: View {
                 Text(verbatim: name)
                     .lineLimit(1)
                 if rule.source == .suggested {
-                    Chip(Text("Đề xuất"), height: 20, fontSize: 11)
+                    Chip(Text("Suggested"), height: 20, fontSize: 11)
                 }
             }
         }
@@ -171,15 +173,15 @@ struct SuggestionRow: View {
     var body: some View {
         let name = AppDirectory.name(for: suggestion)
         LabeledContent {
-            Button("Bật gạch chân", action: accept)
-                .accessibilityLabel(Text("Bật gạch chân cho \(name)"))
+            Button("Turn On Underline", action: accept)
+                .accessibilityLabel(Text("Turn on underline for \(name)"))
         } label: {
             HStack(spacing: 8) {
                 AppIcon(bundleID: suggestion.bundleID, size: AppIcon.twoLine)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(verbatim: name)
                         .lineLimit(1)
-                    Subtitle(Text("Có thể sai chữ khi gõ rất nhanh"))
+                    Subtitle(Text("Text may come out wrong when you type very fast"))
                 }
             }
         }

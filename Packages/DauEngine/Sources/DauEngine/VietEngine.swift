@@ -30,6 +30,8 @@ public struct VietEngine: Sendable {
     var lockedBySpelling = false
     /// D33: the word grew past 7 letters; everything passes through until it ends.
     var overflow = false
+    /// D33: letters the app shows for the overflowed word; ⌫ to zero ends the state.
+    var overflowShown = 0
     /// D20: the next key is the first one after `seed(displayed:)`.
     var seedPending = false
 
@@ -68,6 +70,7 @@ public struct VietEngine: Sendable {
         lockedByDouble = false
         lockedBySpelling = false
         overflow = false
+        overflowShown = 0
         seedPending = false
     }
 
@@ -89,7 +92,10 @@ public struct VietEngine: Sendable {
         guard let info = Letters.decompose(v) else {
             return finishWord(appending: v)
         }
-        if overflow { return .passThrough }
+        if overflow {
+            overflowShown += 1
+            return .passThrough
+        }
         return handleLetter(v, info)
     }
 
@@ -106,7 +112,12 @@ public struct VietEngine: Sendable {
     /// recomputed. Returns `.passThrough` when the app's own Backspace gives the right
     /// result (or when the engine is not tracking a word).
     public mutating func backspace() -> Action {
-        if overflow { return .passThrough }
+        if overflow {
+            // D33: deleting the whole word ends the pass-through state.
+            overflowShown -= 1
+            if overflowShown <= 0 { reset() }
+            return .passThrough
+        }
         if word.count == 0 {
             reset()
             return .passThrough
@@ -115,8 +126,8 @@ public struct VietEngine: Sendable {
         let tone = word.tone
         word.removeLast()
         // D32: the tone stays with the word and moves to the remaining rhyme
-        // ("hoà" ⌫ → "hò"); it goes only when no vowel is left.
-        if word.hasVowel {
+        // ("hoà" ⌫ → "hò"); it goes when no rhyme is left ("quá" ⌫ → "qu").
+        if word.hasVowel && !word.isBareQu {
             word.tone = tone
             lockedBySpelling = !isValid(word, .prefix)
             if !isLocked || word.tonePos < 0 { word.placeTone(modern: modern) }
@@ -189,6 +200,21 @@ public struct VietEngine: Sendable {
         return true
     }
 
+    /// D20 (exception b) with D33: the app already shows, right before the cursor, a
+    /// word that is not Vietnamese and that `seed(displayed:)` cannot take (longer than
+    /// 7 letters, or letters the engine does not know). The keys typed next belong to
+    /// that word: as with an over-long word typed here (D33), every key passes through
+    /// unchanged until the word ends, and nothing is restored (D4: the engine never
+    /// changed it). `shown`: how many characters the app shows for the word; ⌫ ends
+    /// the state once they are all deleted. A count of zero or less leaves the engine
+    /// empty.
+    public mutating func seedOverflow(shown: Int) {
+        reset()
+        guard shown > 0 else { return }
+        overflow = true
+        overflowShown = shown
+    }
+
     // MARK: - Letter keys
 
     var isLocked: Bool { lockedByDouble || lockedBySpelling }
@@ -242,9 +268,10 @@ public struct VietEngine: Sendable {
                 return commit(typed: v)
             case .appendHornedU:
                 if w.count >= Word.maxLetters { return startOverflow(v) }
-                w.append(base: Ch.u, mod: Mod.hook, upper: info.upper, standalone: true)
+                w.append(base: Ch.u, mod: Mod.hook, upper: info.upper, origin: Origin.loneW)
                 if isValid(w, mode) {
                     if raw.length >= VietEngine.rawCapacity { return startOverflow(v) }
+                    w.placeTone(modern: modern) // "gìw" → "giừ"
                     word = w
                     raw.append(v)
                     return commit(typed: v)
@@ -345,10 +372,10 @@ public struct VietEngine: Sendable {
         while i >= s {
             let b = w.base[i]
             if b == Ch.a || b == Ch.e || b == Ch.o {
-                let saved = w.mod[i]
-                w.mod[i] = Mod.hat
+                let saved = w
+                VietEngine.putHat(&w, at: i)
                 if isValid(w, mode) { return .applied }
-                w.mod[i] = saved
+                w = saved
             }
             i -= 1
         }
@@ -386,15 +413,36 @@ public struct VietEngine: Sendable {
             w.mod[target] = Mod.none
             return .doubled(appendKey: true, lock: key != Ch.o)
         }
-        w.mod[target] = Mod.hat
+        VietEngine.putHat(&w, at: target)
         return .applied
+    }
+
+    /// Circumflex on letter `i`, replacing the diacritic it has (D28 "Phím biến đổi
+    /// khác loại": "aaw" → "ă", "owo" → "ô"). On the cluster ươ the horn of the u goes
+    /// with it ("cươi" + o → "cuôi", VNI "bương" + 6 → "buông").
+    @inline(__always)
+    static func putHat(_ w: inout Word, at i: Int) {
+        if w.base[i] == Ch.o && w.mod[i] == Mod.hook && i >= 1 && w.base[i - 1] == Ch.u
+            && w.mod[i - 1] == Mod.hook {
+            // Only the cluster ươ: "ưo" + o stays invalid ("ưô"), so "wo" + o does not
+            // turn a lone-w ư into a u the user never typed.
+            w.mod[i - 1] = Mod.none
+            w.origin[i - 1] = Origin.typed
+        }
+        w.mod[i] = Mod.hat
+        w.origin[i] = Origin.typed
     }
 
     /// Breve/horn key: Telex w (a, o, u), VNI 7 (o, u) and VNI 8 (a).
     /// "uo" gets the horn on both, except an open "uơ" (thuở, huơ; D35). With no target in
-    /// the word, Telex w appends "ư" (`loneU`, D23); Telex đơn giản keeps the letter w
-    /// (D29); VNI keeps the digit.
+    /// the word (or only the initial "gi"), Telex w appends "ư" (`loneU`, D23); Telex
+    /// đơn giản keeps the letter w (D29); VNI keeps the digit.
     func hookKey(_ w: inout Word, mode: SpellMode, onA: Bool, onOU: Bool, loneU: Bool) -> Outcome {
+        // D23, D31: the i of a bare "gi" belongs to the initial, so a lone w there is
+        // ư as after any consonant ("giw" → "giư", "giwax" → "giữa").
+        if loneU && w.count == 2 && w.code(0) == Ch.g && w.base[1] == Ch.i && w.mod[1] == Mod.none {
+            return .appendHornedU
+        }
         let (s, e) = w.nucleus()
         if s < e {
             // "uo" pair: both get the horn, except an open "uơ" (thuở, huơ).
@@ -404,6 +452,16 @@ public struct VietEngine: Sendable {
                     let uHook = w.mod[i] == Mod.hook
                     let oHook = w.mod[i + 1] == Mod.hook
                     let hasFollower = i + 2 < w.count
+                    if oHook && !uHook && !hasFollower && w.origin[i + 1] == Origin.movedHorn {
+                        // "uwo" + w, "u7o" + 7: the horn goes on u too (D35 "nguwowif",
+                        // "ngu7o72i" → "người").
+                        let saved = w
+                        w.mod[i] = Mod.hook
+                        w.origin[i + 1] = Origin.typed
+                        if isValid(w, mode) { return .applied }
+                        w = saved
+                        return .none
+                    }
                     if oHook && (uHook || !hasFollower) {
                         w.mod[i] = Mod.none
                         w.mod[i + 1] = Mod.none
@@ -411,6 +469,7 @@ public struct VietEngine: Sendable {
                     }
                     let saved = w
                     w.mod[i + 1] = Mod.hook
+                    w.origin[i + 1] = Origin.typed
                     if hasFollower { w.mod[i] = Mod.hook }
                     if isValid(w, mode) { return .applied }
                     w = saved
@@ -420,16 +479,16 @@ public struct VietEngine: Sendable {
             }
             // Single a/o/u: try from the last one backwards ("mua" → "mưa",
             // "hoa" → "hoă"), keeping the first that leaves a valid prefix.
-            var targets = 0
             var hooked = -1
+            var unhookedTargets = 0
             i = e - 1
             while i >= s {
                 let b = w.base[i]
                 if (onA && b == Ch.a) || (onOU && (b == Ch.o || b == Ch.u)) {
-                    targets += 1
                     if w.mod[i] == Mod.hook {
                         if hooked < 0 { hooked = i }
                     } else {
+                        unhookedTargets += 1
                         let saved = w.mod[i]
                         w.mod[i] = Mod.hook
                         if isValid(w, mode) { return .applied }
@@ -438,26 +497,22 @@ public struct VietEngine: Sendable {
                 }
                 i -= 1
             }
-            if targets > 0 && hooked >= 0 {
-                var unhooked = 0
-                i = s
-                while i < e {
-                    let b = w.base[i]
-                    if ((onA && b == Ch.a) || (onOU && (b == Ch.o || b == Ch.u))) && w.mod[i] != Mod.hook {
-                        unhooked += 1
-                    }
-                    i += 1
-                }
-                if unhooked == 0 {
-                    // Every target already has it: undo (D26 "aww" → "aw", "ww" → "w").
-                    if w.standalone[hooked] == 1 {
-                        w.base[hooked] = Ch.w
-                        w.mod[hooked] = Mod.none
-                        w.standalone[hooked] = 0
-                        return .doubled(appendKey: false, lock: true)
-                    }
+            if hooked >= 0 {
+                // Every other target was tried and cannot take it: undo (D26
+                // "aww" → "aw", "huaww" → "huaw").
+                if w.origin[hooked] != Origin.loneW {
                     w.mod[hooked] = Mod.none
                     return .doubled(appendKey: true, lock: true)
+                }
+                // D26 "Ngoại lệ": a lone-w "ư" (D23) is not unhooked by a later w.
+                // It turns back into w ("ww" → "w") only when it is the only target;
+                // with another vowel after it the key stays a letter ("waw",
+                // "Warwick", "waxwing" are restored whole at the boundary, D4).
+                if unhookedTargets == 0 {
+                    w.base[hooked] = Ch.w
+                    w.mod[hooked] = Mod.none
+                    w.origin[hooked] = Origin.typed
+                    return .doubled(appendKey: false, lock: true)
                 }
             }
             return .none
@@ -527,6 +582,7 @@ public struct VietEngine: Sendable {
     /// was transformed and auto restore is on) and let the rest of the word through.
     mutating func startOverflow(_ v: UInt32) -> Action {
         overflow = true
+        overflowShown = (options.autoRestore && raw != screen ? raw.length : screen.length) + 1
         var action = Action.passThrough
         if options.autoRestore && raw != screen {
             var output = raw

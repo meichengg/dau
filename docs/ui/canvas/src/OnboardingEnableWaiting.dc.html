@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Chào mừng – bước 2: chờ bấm Allow</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
+body{margin:0}
+.sw{appearance:none;-webkit-appearance:none;width:40px;height:24px;border-radius:12px;background:#c7c7cc;margin:0;position:relative;flex:none;cursor:default}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:10px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sw:checked{background:var(--acc)}
+.sw:checked::after{left:18px}
+.pop{all:unset;box-sizing:border-box;height:26px;padding:0 10px 0 12px;border-radius:999px;background:#fff;border:1px solid rgba(0,0,0,.12);box-shadow:0 1px 1px rgba(0,0,0,.06);font-size:13px;display:inline-flex;align-items:center;gap:6px;color:#1d1d1f;cursor:default;white-space:nowrap}
+.btn{all:unset;box-sizing:border-box;height:28px;padding:0 15px;border-radius:999px;font-size:13px;font-weight:400;display:inline-flex;align-items:center;justify-content:center;background:rgba(0,0,0,.06);color:#1d1d1f;cursor:default;white-space:nowrap;text-decoration:none}
+.btn.pri{background:var(--acc);color:#fff}
+.btn.danger{color:#b42318}
+.seg{display:flex;padding:2px;border-radius:999px;background:rgba(0,0,0,.07);gap:2px}
+.sg{all:unset;box-sizing:border-box;flex:1;height:26px;padding:0 14px;border-radius:999px;font-size:13px;display:flex;align-items:center;justify-content:center;color:#1d1d1f;cursor:default;white-space:nowrap}
+.sg.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15);font-weight:600}
+.card{background:#fff;border-radius:12px;border:1px solid #e5e5e5}
+.row{display:flex;align-items:center;gap:12px;min-height:48px;padding:10px 16px;box-sizing:border-box;font-size:13px;color:#1d1d1f}
+.sep{height:1px;background:rgba(0,0,0,.07);margin-left:16px}
+.hint{font-size:12px;color:#6e6e73;line-height:1.4}
+.sec{font-size:13px;font-weight:600;color:#1d1d1f;padding:0 4px}
+.side{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:9px;height:32px;padding:0 8px;border-radius:9px;font-size:13px;color:#1d1d1f;cursor:default;text-decoration:none}
+.side.on{background:var(--acc);color:#fff;font-weight:500}
+.tile{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex:none}
+.kc{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 6px;box-sizing:border-box;border-radius:6px;background:#fff;border:1px solid rgba(0,0,0,.14);box-shadow:0 1px 0 rgba(0,0,0,.12);font-size:12px;color:#1d1d1f}
+.chip{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;font-size:12px;background:rgba(0,0,0,.06);color:#3a3a3c}
+.mi{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:6px;width:100%;height:26px;padding:0 10px;border-radius:7px;font-size:13px;color:#1d1d1f;cursor:default}
+.mi.on{background:var(--acc);color:#fff}
+.mk{width:14px;flex:none;display:inline-flex}
+.k{margin-left:auto;color:#6e6e73;font-size:12px}
+
+</style>
+</helmet>
+<div style="width: 820px; height: 580px; position: relative; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; --acc: {{accent}}">
+<div aria-hidden="true" style="position: absolute; inset: 0; background: #1c2f4a; overflow: hidden">
+<div style="position: absolute; width: 620px; height: 620px; border-radius: 50%; background: #2d6cb5; left: -160px; top: -220px"></div>
+<div style="position: absolute; width: 520px; height: 520px; border-radius: 50%; background: #e08a3c; right: -140px; bottom: -200px"></div>
+<div style="position: absolute; width: 380px; height: 380px; border-radius: 50%; background: #6a4fa3; right: 120px; top: -120px"></div>
+<div style="position: absolute; width: 300px; height: 300px; border-radius: 50%; background: #2f8f7a; left: 180px; bottom: -150px"></div>
+</div>
+<div style="position: absolute; left: 50px; top: 40px; width: 720px; height: 500px; border-radius: 16px; overflow: hidden; display: flex; box-shadow: 0 28px 70px rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.18)">
+<aside style="width: 230px; flex: none; box-sizing: border-box; padding: 16px 20px; display: flex; flex-direction: column; gap: 22px; background: #e6e7e7">
+<div aria-hidden="true" style="display: flex; gap: 8px"><span style="width: 12px; height: 12px; border-radius: 6px; background: #ff5f57"></span><span style="width: 12px; height: 12px; border-radius: 6px; background: #d1d1d6"></span><span style="width: 12px; height: 12px; border-radius: 6px; background: #d1d1d6"></span></div>
+<div style="display: flex; align-items: center; gap: 12px"><svg width="44" height="44" viewBox="0 0 100 100" aria-hidden="true" style="flex: none"><rect x="0" y="0" width="100" height="100" rx="22.4" fill="#10285A"></rect><text x="48" y="80" text-anchor="middle" font-family="'Be Vietnam Pro', -apple-system, 'Helvetica Neue', sans-serif" font-weight="700" font-size="64" fill="#F6F1E7">a</text><path d="M34 35 L47 25 L60 35" fill="none" stroke="#F6F1E7" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path><path d="M63 24 L73 13" fill="none" stroke="#E0533D" stroke-width="7.5" stroke-linecap="round"></path></svg><span style="font-size: 17px; font-weight: 700; color: #1d1d1f">Dấu</span></div>
+<ol aria-label="Các bước thiết lập" style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 18px"><li style="display: flex; gap: 10px; align-items: flex-start"><span style="width: 24px; height: 24px; border-radius: 12px; background: #34c759; color: #fff; display: flex; align-items: center; justify-content: center; flex: none"><svg width="12" height="12" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 13px; font-weight: 400; color: #1d1d1f">Kiểm tra bộ gõ cũ</span><span class="hint">Để dấu không bị gõ hai lần</span></span></li><li aria-current="step" style="display: flex; gap: 10px; align-items: flex-start"><span style="width: 24px; height: 24px; border-radius: 12px; background: var(--acc); color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: none">2</span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 13px; font-weight: 600; color: #1d1d1f">Bật Dấu</span><span class="hint">Thêm vào nguồn đầu vào</span></span></li><li style="display: flex; gap: 10px; align-items: flex-start"><span style="width: 24px; height: 24px; border-radius: 12px; background: rgba(0,0,0,0.1); color: rgba(0,0,0,0.5); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: none">3</span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 13px; font-weight: 400; color: #1d1d1f">Chọn kiểu gõ</span><span class="hint">Gõ thử ngay</span></span></li></ol>
+<span style="flex: 1"></span>
+<span class="hint">Dấu không cần quyền điều khiển máy Mac.</span>
+</aside>
+<main style="flex: 1; min-width: 0; background: #f6f6f6; box-sizing: border-box; padding: 40px 36px 28px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-direction: column; gap: 6px"><h1 style="margin: 0; font-size: 22px; font-weight: 700; color: #1d1d1f">Bật Dấu</h1>
+<p style="margin: 0; font-size: 13px; line-height: 1.5; color: #5e5e63">Dấu sẽ được thêm vào nguồn đầu vào của macOS, cạnh bàn phím bạn đang dùng.</p></div>
+<div role="status" class="card" style="padding: 16px; display: flex; gap: 16px; align-items: center">
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px"><span style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #1d1d1f"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="flex: none"><rect x="7.1" y="1" width="1.8" height="4.4" rx="0.9" fill="#808080" opacity="1.00" transform="rotate(0 8 8)"></rect><rect x="7.1" y="1" width="1.8" height="4.4" rx="0.9" fill="#808080" opacity="0.89" transform="rotate(-45 8 8)"></rect><rect x="7.1" y="1" width="1.8" height="4.4" rx="0.9" fill="#808080" opacity="0.78" transform="rotate(-90 8 8)"></rect><rect x="7.1" y="1" width="1.8" height="4.4" rx="0.9" fill="#808080" opacity="0.67" transform="rotate(-135 8 8)"></rect><rect x="7.1" y="1" width="1.8" height="4.4" rx="0.9" fill="#808080" opacity="0.56" transform="rotate(-180 8 8)"></rect><rect x="7.1" y="1" width="1.8" height="4.4" rx="0.9" fill="#808080" opacity="0.45" transform="rotate(-225 8 8)"></rect><rect x="7.1" y="1" width="1.8" height="4.4" rx="0.9" fill="#808080" opacity="0.34" transform="rotate(-270 8 8)"></rect><rect x="7.1" y="1" width="1.8" height="4.4" rx="0.9" fill="#808080" opacity="0.23" transform="rotate(-315 8 8)"></rect></svg>Đang chờ bạn bấm Allow</span><span style="font-size: 13px; line-height: 1.45; color: #1d1d1f">Hộp thoại nằm trong cửa sổ System Settings. Bấm <b>Allow</b>, Dấu tự sang bước tiếp theo.</span></div>
+<div aria-hidden="true" title="Hộp thoại thật của macOS 27.2, thu nhỏ khoảng 0,75 lần (đo 04/11/2026: sheet 260 pt, không biểu tượng, chữ canh trái, thân bài hiện đủ, Don’t Allow xám trái, Allow xanh phải)" style="width: 196px; flex: none; box-sizing: border-box; padding: 14px 15px 13px; border-radius: 16px; background: #ffffff; box-shadow: 0 8px 24px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 6px; text-align: left"><span style="font-size: 10.5px; font-weight: 700; color: #1d1d1f; line-height: 13px">Allow “Dấu” to enable “Dấu”?</span><span style="font-size: 9.5px; color: #1d1d1f; line-height: 11.5px">The developer of the input source will be able to access anything you type with this input source. This could include sensitive information such as your credit card number or home address.</span><span style="display: flex; gap: 5px; margin-top: 4px"><span style="flex: 1; height: 22px; border-radius: 11px; background: rgba(0,0,0,0.08); font-size: 9.5px; font-weight: 500; display: flex; align-items: center; justify-content: center; color: #1d1d1f">Don’t Allow</span><span style="flex: 1; height: 22px; border-radius: 11px; background: #0a84ff; font-size: 9.5px; font-weight: 500; display: flex; align-items: center; justify-content: center; color: #fff">Allow</span></span></div>
+</div>
+<span class="hint">Không thấy hộp thoại, hoặc đã chọn Don’t Allow? Bấm Thử lại.</span>
+<span style="flex: 1"></span>
+<div style="display: flex; gap: 10px; justify-content: flex-end"><button class="btn">Quay lại</button><button class="btn">Thử lại</button></div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0A64D8","options":["#0A64D8","#7A3FD1","#C2410C","#1F7A4D"]},"$preview":{"width":820,"height":580}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent ?? '#0A64D8' };
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+// Signing team for every target and configuration (included by project.yml).
+// Default: the maintainer's free Personal Team (D24). To sign with your own team, copy
+// Config/Local.xcconfig.example to Config/Local.xcconfig (git-ignored) and set
+// DEVELOPMENT_TEAM there; CONTRIBUTING.md explains why a real team is needed.
+DEVELOPMENT_TEAM = M58DANM3ZP
+
+#include? "Local.xcconfig"

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Cài đặt – Dấu chưa được bật</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.root{--pane:#ffffff;--card:#f7f7f7;--side:#f4f4f3;--tb:#ffffff;--t1:rgba(0,0,0,.85);--t2:rgba(0,0,0,.5);--sep:rgba(0,0,0,.07);--sep2:rgba(0,0,0,.14);--fill:rgba(0,0,0,.06);--chip:rgba(0,0,0,.05);--box:rgba(0,0,0,.03);--track:rgba(0,0,0,.1);--field:rgba(0,0,0,.035);--fieldb:rgba(0,0,0,.09);--glass:#fbfbfb;--glassb:rgba(0,0,0,.08);--divide:rgba(0,0,0,.07);--red:#ff383c;--orange:#ff8d28;--blue:#0088ff;--purple:#cb30e0;--green:#34c759;--icon:rgba(0,0,0,.6)}
+.root.dark{--pane:#29292a;--card:#323233;--side:#313233;--tb:#323233;--t1:rgba(255,255,255,.88);--t2:rgba(255,255,255,.55);--sep:rgba(255,255,255,.08);--sep2:rgba(255,255,255,.16);--fill:rgba(255,255,255,.1);--chip:rgba(255,255,255,.08);--box:rgba(255,255,255,.05);--track:rgba(255,255,255,.14);--field:rgba(255,255,255,.16);--fieldb:rgba(255,255,255,.1);--glass:#3a3a3c;--glassb:rgba(255,255,255,.1);--divide:rgba(0,0,0,.45);--red:#ff4245;--orange:#ff9230;--blue:#0091ff;--purple:#db34f2;--green:#30d158;--icon:rgba(255,255,255,.7)}
+.win{position:absolute;left:80px;width:740px;height:560px;border-radius:16px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.18),0 28px 70px rgba(0,0,0,.45)}
+.sidecol{position:absolute;left:0;top:0;width:232px;height:560px;background:var(--side);box-shadow:inset -1px 0 0 var(--divide)}
+.tl{position:absolute;top:19px;width:14px;height:14px;border-radius:7px;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.15)}
+.sfield{position:absolute;left:10px;top:62px;width:212px;height:28px;box-sizing:border-box;border-radius:14px;background:var(--field);box-shadow:inset 0 0 0 1px var(--fieldb);display:flex;align-items:center;gap:5px;padding:0 10px 0 8px}
+.sfield input,.tsearch input{all:unset;font-size:13px;color:var(--t1);width:100%}
+.sfield input::placeholder,.tsearch input::placeholder{color:var(--t2)}
+.nav{position:absolute;left:10px;top:100px;width:212px;display:flex;flex-direction:column}
+.side{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:7px;height:32px;padding:0 0 0 9px;border-radius:7px;font-size:13px;color:var(--t1);cursor:default;text-decoration:none;white-space:nowrap}
+.side.on{background:var(--acc);color:#fff}
+.tile{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;flex:none}
+.ver{position:absolute;left:20px;bottom:14px;font-size:11px;line-height:14px;color:var(--t2)}
+.pane{position:absolute;left:232px;top:0;right:0;bottom:0;background:var(--pane)}
+.tb{position:absolute;left:0;top:0;right:0;height:52px;background:var(--tb);z-index:2;display:flex;align-items:center;gap:8px;padding:0 8px 0 20px}
+.tb h1{margin:0;flex:1;font-size:15px;font-weight:700;line-height:19px;color:var(--t1);white-space:nowrap}
+.tbtn{all:unset;box-sizing:border-box;width:36px;height:36px;border-radius:18px;background:var(--glass);box-shadow:inset 0 0 0 1px var(--glassb),0 1px 3px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;flex:none;cursor:default}
+.tsearch{box-sizing:border-box;width:244.5px;height:36px;border-radius:18px;background:var(--glass);box-shadow:inset 0 0 0 1px var(--glassb),0 1px 3px rgba(0,0,0,.06);display:flex;align-items:center;gap:6px;padding:0 14px 0 12px;flex:none}
+.scroll{position:absolute;left:0;top:0;right:0;bottom:0;overflow-y:auto;scrollbar-width:none;box-sizing:border-box;padding:72px 20px 20px}
+.scroll::-webkit-scrollbar{display:none}
+.scroll.end{display:flex;flex-direction:column-reverse}
+.scroll.end>div{margin-bottom:auto}
+.g10{margin-top:10px}
+.g30{margin-top:30px}
+.hd{margin:0 10px 10px;display:flex;flex-direction:column;gap:2px}
+.sec{margin:0;font-size:13px;font-weight:600;line-height:17.5px;color:var(--t1)}
+.desc{margin:0;font-size:11px;line-height:16px;color:var(--t2)}
+.foot{margin:10px 10px 0;font-size:11px;line-height:16px;color:var(--t2)}
+.card{background:var(--card);border-radius:11px}
+.row{display:flex;align-items:flex-start;gap:12px;min-height:37.5px;padding:0 10px;box-sizing:border-box;font-size:13px;line-height:17.5px;color:var(--t1)}
+.row.r40{min-height:40px}
+.row.mid{align-items:center}
+.row.full{padding:10px}
+.lbl{flex:1;min-width:0;padding:10px 0;display:flex;flex-direction:column;gap:2px}
+.lbl.app{flex-direction:row;align-items:center;gap:8px}
+.sub{font-size:11px;line-height:16px;color:var(--t2)}
+.val{color:var(--t2);white-space:nowrap}
+.sep{height:1px;margin:0 10px;background:var(--sep);position:relative}
+.sw{appearance:none;-webkit-appearance:none;width:36px;height:16px;border-radius:8px;background:var(--track);margin:0;position:relative;flex:none;cursor:default}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:12px;border-radius:6px;background:#fff;box-shadow:0 .5px 1.5px rgba(0,0,0,.3)}
+.sw:checked{background:var(--acc)}
+.sw:checked::after{left:14px}
+.btn{all:unset;box-sizing:border-box;height:24px;padding:0 12px;border-radius:7px;font-size:13px;line-height:17.5px;display:inline-flex;align-items:center;justify-content:center;background:var(--fill);color:var(--t1);cursor:default;white-space:nowrap;text-decoration:none;flex:none}
+.btn.pri{background:var(--acc);color:#fff}
+.btn.danger{color:var(--red)}
+.seg{display:flex;height:24px;border-radius:7px;background:var(--fill);flex:none}
+.seg.fill{flex:1}
+.sg{all:unset;box-sizing:border-box;position:relative;height:24px;padding:0 12px;border-radius:7px;font-size:13px;display:flex;align-items:center;justify-content:center;color:var(--t1);cursor:default;white-space:nowrap}
+.seg.fill .sg{flex:1}
+.sg.on{background:var(--acc);color:#fff}
+.sg:not(.on)+.sg:not(.on)::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:1px;background:var(--sep2)}
+.pop{all:unset;box-sizing:border-box;height:24px;display:inline-flex;align-items:center;gap:6px;padding:0 2px 0 4px;font-size:13px;color:var(--t1);cursor:default;white-space:nowrap;flex:none}
+.popc{width:20px;height:20px;border-radius:10px;background:var(--fill);display:inline-flex;align-items:center;justify-content:center}
+.c24{margin-top:6.75px}
+.c16{margin-top:10.75px}
+.kc{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 6px;box-sizing:border-box;border-radius:6px;background:var(--fill);box-shadow:inset 0 0 0 1px var(--sep2);font-size:12px;color:var(--t1)}
+.chip{display:inline-flex;align-items:center;height:22px;padding:0 9px;box-sizing:border-box;border-radius:11px;font-size:12px;background:var(--chip);color:var(--t2);white-space:nowrap;flex:none}
+.chip.sm{height:20px;font-size:11px}
+.chip.em{color:var(--t1);font-weight:600}
+.chip.mono{font-family:ui-monospace,'SF Mono',Menlo,monospace}
+.ex{display:inline-flex;align-items:center;gap:6px}
+.new{font-size:11px;font-weight:600;line-height:14px;color:#fff;background:var(--acc);border-radius:999px;padding:1px 7px}
+.box{height:40px;box-sizing:border-box;border-radius:8px;background:var(--box);padding:0 12px;display:flex;align-items:center;white-space:nowrap;overflow:hidden}
+.appi{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex:none;color:#fff;font-size:12px;font-weight:700}
+details summary::-webkit-details-marker{display:none}
+details summary{list-style:none}
+.disc{display:inline-flex}
+details[open] .disc svg{transform:rotate(90deg)}
+</style>
+</helmet>
+<div class="root" style="width: 900px; height: 680px; position: relative; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; --acc: {{accent}}">
+<div aria-hidden="true" style="position: absolute; inset: 0; background: #1c2f4a; overflow: hidden">
+<div style="position: absolute; width: 620px; height: 620px; border-radius: 50%; background: #2d6cb5; left: -160px; top: -220px"></div>
+<div style="position: absolute; width: 520px; height: 520px; border-radius: 50%; background: #e08a3c; right: -140px; bottom: -200px"></div>
+<div style="position: absolute; width: 380px; height: 380px; border-radius: 50%; background: #6a4fa3; right: 120px; top: -120px"></div>
+<div style="position: absolute; width: 300px; height: 300px; border-radius: 50%; background: #2f8f7a; left: 180px; bottom: -150px"></div>
+</div>
+<div class="win" style="top: 60px">
+<div class="sidecol">
+<div aria-hidden="true"><span class="tl" style="left: 19px; background: #ff5f57"></span><span class="tl" style="left: 42px; background: #febc2e"></span><span class="tl" style="left: 65px; background: #28c840"></span></div>
+<label class="sfield"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4 4"></path></svg><input aria-label="Tìm trong cài đặt" placeholder="Tìm kiếm"></label>
+<nav class="nav" aria-label="Mục cài đặt">
+<span class="side on" aria-current="page"><span class="tile" style="background: var(--blue)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="3"></rect><path d="M6.5 10h.01M10 10h.01M13.5 10h.01M17 10h.01M8 14h8"></path></svg></span>Gõ phím</span>
+<a class="side" href="SettingsSmart.dc.html"><span class="tile" style="background: var(--purple)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 4.8L19 9.5l-5.1 1.7L12 16l-1.9-4.8L5 9.5l5.1-1.7z"></path><path d="M18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"></path></svg></span>Thông minh</a>
+<a class="side" href="SettingsApps.dc.html"><span class="tile" style="background: var(--orange)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.8"></rect><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"></rect><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"></rect><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.8"></rect></svg></span>Ứng dụng</a>
+<a class="side" href="SettingsAbout.dc.html"><span class="tile" style="background: var(--green)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7"></path><path d="M20 4.5v4h-4"></path></svg></span>Cập nhật & hỗ trợ</a>
+</nav>
+<span class="ver">Dấu 1.0.0 (a1b2c3d)</span>
+</div>
+<main class="pane">
+<header class="tb" style="padding-left: 8px; gap: 12px"><span role="group" aria-label="Điều hướng" style="display: flex; flex: none; height: 36px; border-radius: 18px; background: var(--glass); box-shadow: inset 0 0 0 1px var(--glassb), 0 1px 3px rgba(0,0,0,.06)"><button aria-label="Lùi" style="all: unset; box-sizing: border-box; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: default"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--t1)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style=""><path d="M15 6l-6 6 6 6"></path></svg></button><span aria-hidden="true" style="width: 1px; margin: 9px 0; background: var(--sep2)"></span><button aria-label="Tiến" disabled style="all: unset; box-sizing: border-box; width: 37px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: default"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style=" opacity: .45;"><path d="M9 6l6 6-6 6"></path></svg></button></span><h1 style="margin-left: -2px">Gõ phím</h1></header>
+<div class="scroll"><div>
+<section class="card" role="status"><div class="row mid" style="gap: 10px; padding: 10px"><span class="tile" style="width: 28px; height: 28px; border-radius: 7px; background: var(--orange)"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 3.9L1.9 18.5A2 2 0 0 0 3.6 21.5h16.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" fill="#fff"></path><path d="M12 9v5" stroke="var(--orange)" stroke-width="2.2" stroke-linecap="round"></path><circle cx="12" cy="17.4" r="1.25" fill="var(--orange)"></circle></svg></span><div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 600">Dấu chưa được bật trong nguồn đầu vào</span><span class="sub">Bạn vẫn chỉnh được cài đặt, nhưng chưa gõ được tiếng Việt.</span></div><button class="btn pri">Bật lại</button></div></section>
+<div class="g10"><section class="card" aria-label="Xem trước"><div style="padding: 10px; display: flex; flex-direction: column; gap: 10px"><div style="display: flex; align-items: center; gap: 8px"><span style="flex: 1; font-size: 13px; font-weight: 600; line-height: 17.5px; color: var(--t1)">Xem trước</span><span class="chip">Telex</span><span class="chip">Kiểu mới</span></div><div style="display: flex; align-items: center; gap: 10px"><div class="box" style="flex: none; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12px; color: var(--t2)">hoaf binhf, tieengs Vieetj</div><span style="width: 20px; flex: none; display: flex; justify-content: center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span><div class="box" style="flex: 1; min-width: 0; font-size: 16px; font-weight: 600; color: var(--t1)">hoà bình, tiếng Việt</div></div></div></section></div>
+<section class="g30"><div class="hd"><h2 class="sec">Kiểu gõ</h2></div><div class="card"><div class="row full"><div class="seg fill" role="radiogroup" aria-label="Kiểu gõ"><button class="sg on" role="radio">Telex</button><button class="sg" role="radio">VNI</button><button class="sg" role="radio">Telex đơn giản</button></div></div><div class="sep"></div><div class="row"><div class="lbl"><span>Vị trí dấu thanh</span><span class="sub">Kiểu mới: hoà, thuý · Kiểu cũ: hòa, thúy</span></div><div class="seg c24" role="radiogroup" aria-label="Vị trí dấu thanh"><button class="sg on" role="radio">Kiểu mới</button><button class="sg" role="radio">Kiểu cũ</button></div></div><div class="sep"></div><div class="row"><div class="lbl"><span>Bỏ dấu tự do</span><span class="sub">Gõ phím dấu ở bất kỳ đâu sau nguyên âm</span></div><input type="checkbox" class="sw c16" checked aria-label="Bỏ dấu tự do"></div></div></section>
+<section class="g30"><div class="hd"><h2 class="sec">Chuyển tiếng Việt ↔ tiếng Anh</h2></div><div class="card"><div class="row"><div class="lbl"><span>Phím tắt chuyển nguồn đầu vào</span><span class="sub">Dùng chung phím tắt của macOS, đổi trong System Settings › Keyboard</span></div><span class="c24" style="display: flex; gap: 8px; flex: none"><span style="display: flex; gap: 4px"><span class="kc">⌃</span><span class="kc">Space</span></span><button class="btn">Đổi…</button></span></div></div></section>
+</div></div>
+</main>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0A64D8","options":["#0A64D8","#7A3FD1","#C2410C","#1F7A4D"]},"$preview":{"width":900,"height":680}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent ?? '#0A64D8' };
+}
+}
+</script>
+</body>
+</html>

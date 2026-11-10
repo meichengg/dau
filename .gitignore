@@ -25,3 +25,6 @@ Package.resolved
 *.mobileprovision
 *.provisionprofile
 .env
+
+# Per-developer signing team (Config/Local.xcconfig.example)
+Config/Local.xcconfig

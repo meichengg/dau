@@ -13,7 +13,7 @@ struct LayoutNamesTests {
     ]
     let us = "com.apple.keylayout.US"
 
-    @Test("system language English → the English entry, even though the app speaks Vietnamese")
+    @Test("system language English → the English entry, whatever language the app shows")
     func english() {
         let names = LayoutNames(table: table, languages: ["en-VN", "vi-VN"])
         #expect(names.displayName(sourceID: us, fallback: "Mỹ") == "U.S.")

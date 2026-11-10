@@ -17,12 +17,11 @@
 //   (d) Scrolled (Reference.scrollingSection, Always): the header looks as when not scrolled.
 //   (e) The Ứng dụng toolbar "+" is drawn round.
 //   (f) onboarding/, onboarding-no-shortcut/ (Dau --capture-onboarding): every shot has
-//       the app name, title, card and buttons where the mockup puts them; a view missing
-//       from a shot is FAIL (the app drops a view's frame when it disappears).
-//   (h) banner-states/ (Dau --capture-banner): the three banner states after "Bật lại" in
-//   both appearances, shown inside the Form's margins.
+//       the app name, title, card and buttons where the mockup puts them, and the window
+//       shows no title text; a view missing from a shot is FAIL (the app drops a view's
+//       frame when it disappears).
 //   (g) uninstall/ (Dau --capture-uninstall): both alerts and both sheets of "Bỏ Dấu khỏi
-//   Nguồn nhập liệu" in both appearances, not cut.
+//   nguồn đầu vào" in both appearances, not cut.
 // Results as ax-check: FAIL for a UI result off Reference; HARNESS when an input the
 // check needs is missing (the step that writes it says why in its own table); no skip.
 // Exit status 0 only when every row is ok.
@@ -219,20 +218,27 @@ for (style, dirName) in windowDirs {
 /// The system's Always scroll bar width (what a scrolling step gives up when the bars are Always).
 let alwaysScrollerWidth = NSScroller.scrollerWidth(for: .regular, scrollerStyle: .legacy)
 
-// Mockup positions ("OnboardingConflict", "OnboardingEnable", "OnboardingEnableNotes",
+// Mockup positions ("OnboardingConflict", "OnboardingConflictDone", "OnboardingEnable", "OnboardingEnableNotes",
 // "OnboardingEnableWaiting", "OnboardingEnableFailed", "OnboardingEnableError",
 // "OnboardingEnableDone", "OnboardingEnableDoneNoShortcut", "Onboarding"; window at
 // 50,40 in the artboard), the same in every step and both appearances.
-let onboardingShots = ["1", "2", "2-notes", "2-waiting", "2-failed", "2-error", "2-done", "2-done-noshortcut", "3"]
+let onboardingShots = ["1", "2", "1-done", "2-notes", "2-waiting", "2-failed", "2-error", "2-done", "2-done-noshortcut", "3"]
     .flatMap { step in ["light", "dark"].map { "onboarding-\(step)-\($0)" } }
 for dirName in ["onboarding", "onboarding-no-shortcut"] {
     guard let (shots, _) = loadFrames(root.appendingPathComponent(dirName)) else {
         harness(dirName, "(f)", "no frames.json (see the capture step in run.sh's output)")
         continue
     }
+    // Flags beside the frames: "titleHidden" is the window's `titleVisibility == .hidden`.
+    let flags = (try? Data(contentsOf: root.appendingPathComponent(dirName).appendingPathComponent("frames.json")))
+        .flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: [String: [Double]]] } ?? [:]
     for key in onboardingShots {
         let at = "\(dirName)/\(key)"
         guard let f = shots[key] else { harness(at, "(f)", "no capture (see the capture step in run.sh's output)"); continue }
+        // The mockup has no title text; `.hiddenTitleBar` alone hides it (no window code).
+        let hidden = flags[key]?["titleHidden"]?.first
+        record(at, "(f) window title hidden", expected: "hidden", got: hidden.map { $0 == 1 ? "hidden" : "shown" } ?? "missing",
+               ok: hidden == 1)
         func place(_ name: String, _ ok: (CGRect) -> Bool, expected: String) {
             guard let r = f[name] else {
                 record(at, "(f) \(name)", expected: expected, got: "missing (view not shown)", ok: false)
@@ -275,28 +281,6 @@ for key in ["confirm", "done", "remove", "remove-hint"].flatMap({ k in ["light",
     let min = Reference.alertMinSize
     record(at, "(g) alert not cut", expected: "≥ \(fmt(min.width))×\(fmt(min.height))", got: "\(fmt(sheet.width))×\(fmt(sheet.height))",
            ok: sheet.width >= min.width && sheet.height >= min.height)
-}
-
-// MARK: - Banner states (h)
-
-// The banner after "Bật lại" (Dau --capture-banner): waiting, not enabled, enabled, both
-// appearances. The banner row must be shown (a state that fails to draw has no frame),
-// inside the Form's margins and below the toolbar.
-let bannerDir = root.appendingPathComponent("banner-states")
-let bannerShots = loadFrames(bannerDir)?.shots
-for key in ["waiting", "failed", "done"].flatMap({ k in ["light", "dark"].map { "banner-\(k)-\($0)" } }) {
-    let at = "banner-states/\(key)"
-    guard let f = bannerShots?[key], image(bannerDir.appendingPathComponent("\(key).png")) != nil else {
-        harness(at, "(h)", "no capture (see the capture step in run.sh's output)")
-        continue
-    }
-    guard let banner = f["banner"], let window = f["window"] else {
-        record(at, "(h) banner shown", expected: "a banner row", got: "missing (view not shown)", ok: false)
-        continue
-    }
-    let left = Reference.sidebarWidth + Reference.formMargin, right = window.width - Reference.formMargin
-    record(at, "(h) banner inside the Form's margins", expected: "x ≥ \(fmt(left)), right edge ≤ \(fmt(right)), y ≥ \(fmt(Reference.formFirstItemY))",
-           got: fmt(banner), ok: banner.minX >= left - 0.5 && banner.maxX <= right + 0.5 && banner.minY >= Reference.formFirstItemY - 0.5)
 }
 
 print("where | check | expected | got | result")

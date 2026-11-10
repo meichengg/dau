@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Gỡ cài đặt – bỏ Dấu khỏi nguồn đầu vào</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
+body{margin:0}
+.sw{appearance:none;-webkit-appearance:none;width:40px;height:24px;border-radius:12px;background:#c7c7cc;margin:0;position:relative;flex:none;cursor:default}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:10px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sw:checked{background:var(--acc)}
+.sw:checked::after{left:18px}
+.pop{all:unset;box-sizing:border-box;height:26px;padding:0 10px 0 12px;border-radius:999px;background:#fff;border:1px solid rgba(0,0,0,.12);box-shadow:0 1px 1px rgba(0,0,0,.06);font-size:13px;display:inline-flex;align-items:center;gap:6px;color:#1d1d1f;cursor:default;white-space:nowrap}
+.btn{all:unset;box-sizing:border-box;height:30px;padding:0 16px;border-radius:999px;font-size:13px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;background:rgba(0,0,0,.06);color:#1d1d1f;cursor:default;white-space:nowrap;text-decoration:none}
+.btn.pri{background:var(--acc);color:#fff}
+.btn.danger{color:#b42318}
+.seg{display:flex;padding:2px;border-radius:999px;background:rgba(0,0,0,.07);gap:2px}
+.sg{all:unset;box-sizing:border-box;flex:1;height:26px;padding:0 14px;border-radius:999px;font-size:13px;display:flex;align-items:center;justify-content:center;color:#1d1d1f;cursor:default;white-space:nowrap}
+.sg.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15);font-weight:600}
+.card{background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06)}
+.row{display:flex;align-items:center;gap:12px;min-height:48px;padding:10px 16px;box-sizing:border-box;font-size:13px;color:#1d1d1f}
+.sep{height:1px;background:rgba(0,0,0,.07);margin-left:16px}
+.hint{font-size:12px;color:#6e6e73;line-height:1.4}
+.sec{font-size:13px;font-weight:600;color:#1d1d1f;padding:0 4px}
+.side{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:9px;height:32px;padding:0 8px;border-radius:9px;font-size:13px;color:#1d1d1f;cursor:default;text-decoration:none}
+.side.on{background:var(--acc);color:#fff;font-weight:500}
+.tile{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex:none}
+.kc{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 6px;box-sizing:border-box;border-radius:6px;background:#fff;border:1px solid rgba(0,0,0,.14);box-shadow:0 1px 0 rgba(0,0,0,.12);font-size:12px;color:#1d1d1f}
+.chip{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;font-size:12px;background:rgba(0,0,0,.06);color:#3a3a3c}
+.mi{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:6px;width:100%;height:26px;padding:0 10px;border-radius:7px;font-size:13px;color:#1d1d1f;cursor:default}
+.mi.on{background:var(--acc);color:#fff}
+.mk{width:14px;flex:none;display:inline-flex}
+.k{margin-left:auto;color:#6e6e73;font-size:12px}
+
+</style>
+</helmet>
+<div style="width: 900px; height: 560px; position: relative; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; --acc: {{accent}}"><div aria-hidden="true" style="position: absolute; inset: 0; background: #1c2f4a; overflow: hidden">
+<div style="position: absolute; width: 620px; height: 620px; border-radius: 50%; background: #2d6cb5; left: -160px; top: -220px"></div>
+<div style="position: absolute; width: 520px; height: 520px; border-radius: 50%; background: #e08a3c; right: -140px; bottom: -200px"></div>
+<div style="position: absolute; width: 380px; height: 380px; border-radius: 50%; background: #6a4fa3; right: 120px; top: -120px"></div>
+<div style="position: absolute; width: 300px; height: 300px; border-radius: 50%; background: #2f8f7a; left: 180px; bottom: -150px"></div>
+</div>
+<div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center">
+<section role="dialog" aria-labelledby="un-h" style="width: 470px; box-sizing: border-box; border-radius: 20px; background: #ffffff; box-shadow: 0 28px 70px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.18); overflow: hidden">
+<div style="padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-direction: column; gap: 6px"><h2 id="un-h" style="margin: 0; font-size: 13px; line-height: 17px; font-weight: 700; color: #1d1d1f">Bỏ Dấu khỏi nguồn đầu vào</h2><p style="margin: 0; font-size: 13px; line-height: 16.5px; color: rgba(0,0,0,0.5)">Chỉ bạn mới bỏ được một nguồn đầu vào khỏi macOS. System Settings đã mở sẵn danh sách Input Sources.</p></div>
+<div style="padding: 16px 16px 14px; border-radius: 12px; background: #ffffff; border: 1px solid #e5e5e5"><ol aria-label="Các bước" style="list-style: none; margin: 0; padding: 0"><li style="display: flex; gap: 10px; align-items: flex-start"><span style="width: 22px; height: 22px; border-radius: 11px; background: var(--acc); color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: none">1</span><span style="padding-top: 2px; font-size: 13px; line-height: 18.5px; color: #1d1d1f; text-align: left">Chọn <b>Dấu – Tiếng Việt</b> ở danh sách bên trái, bấm <b>–</b>, rồi <b>Done</b>.</span></li></ol></div>
+<div role="status" style="display: flex; align-items: flex-start; gap: 8px; font-size: 12px; line-height: 16px; color: rgba(0,0,0,0.5)"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="flex: none"><rect x="7.1" y="1" width="1.8" height="4.4" rx="0.9" fill="#808080" opacity="1.00" transform="rotate(0 8 8)"></rect><rect x="7.1" y="1" width="1.8" height="4.4" rx="0.9" fill="#808080" opacity="0.89" transform="rotate(-45 8 8)"></rect><rect x="7.1" y="1" width="1.8" height="4.4" rx="0.9" fill="#808080" opacity="0.78" transform="rotate(-90 8 8)"></rect><rect x="7.1" y="1" width="1.8" height="4.4" rx="0.9" fill="#808080" opacity="0.67" transform="rotate(-135 8 8)"></rect><rect x="7.1" y="1" width="1.8" height="4.4" rx="0.9" fill="#808080" opacity="0.56" transform="rotate(-180 8 8)"></rect><rect x="7.1" y="1" width="1.8" height="4.4" rx="0.9" fill="#808080" opacity="0.45" transform="rotate(-225 8 8)"></rect><rect x="7.1" y="1" width="1.8" height="4.4" rx="0.9" fill="#808080" opacity="0.34" transform="rotate(-270 8 8)"></rect><rect x="7.1" y="1" width="1.8" height="4.4" rx="0.9" fill="#808080" opacity="0.23" transform="rotate(-315 8 8)"></rect></svg><span>Khi Dấu không còn trong danh sách, bộ gõ sẽ được chuyển vào Thùng rác.</span></div>
+<div style="display: flex; align-items: flex-start; gap: 8px; font-size: 12px; line-height: 15px; color: rgba(0,0,0,0.5)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex: none; margin-top: 0.5px"><circle cx="12" cy="12" r="9.5"></circle><path d="M12 11v6M12 7.5v.5"></path></svg><span>Bạn đang dùng Dấu. Nếu nút – bị mờ, chọn bàn phím khác trên menu nguồn đầu vào trước.</span></div>
+</div>
+<div aria-hidden="true" style="height: 1px; background: #e6e6e6"></div>
+<div style="padding: 20px; display: flex; gap: 8px; justify-content: flex-end"><button class="btn" style="height: 24px; padding: 0 12px; font-weight: 400; background: rgba(0,0,0,0.075)">Huỷ gỡ cài đặt</button><button class="btn" style="height: 24px; padding: 0 12px; font-weight: 400; background: rgba(0,0,0,0.075)">Mở System Settings</button></div>
+</section>
+</div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0A64D8","options":["#0A64D8","#7A3FD1","#C2410C","#1F7A4D"]},"$preview":{"width":900,"height":560}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent ?? '#0A64D8' };
+}
+}
+</script>
+</body>
+</html>

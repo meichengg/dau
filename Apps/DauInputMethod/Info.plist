@@ -71,7 +71,7 @@
 	     unexpanded in the built Info.plist), and the String Catalog key below is literal too.
 	     They must start with this bundle's identifier. When BUNDLE_ID_PREFIX changes in
 	     project.yml, update every "com.codefastlabs.dau.inputmethod.Dau.vi" here AND the
-	     matching key in Resources/InfoPlist.xcstrings (display name "Dấu – Tiếng Việt"). -->
+	     matching key in Resources/InfoPlist.xcstrings (display names "Dấu – Tiếng Việt" and "Dấu – Vietnamese", D41). -->
 	<key>ComponentInputModeDict</key>
 	<dict>
 		<key>tsInputModeListKey</key>

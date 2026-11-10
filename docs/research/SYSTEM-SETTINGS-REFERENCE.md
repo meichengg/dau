@@ -1,8 +1,35 @@
+## Hiện trạng (09/11/2026)
+
+- **Chuẩn đối chiếu (đo 02/11/2026, macOS 27.2 build 26B123):** khi mockup và macOS khác nhau về bố cục, khoảng cách, cỡ chữ hay hình dáng control thì theo System Settings; mockup chỉ quy định nội dung (D9 (Giao diện)). Số đo ở các mục "Cửa sổ, thanh công cụ, tiêu đề", "Sidebar", "Cột chi tiết: Form dạng nhóm", "Hàng trong thẻ".
+- **Mặc định SwiftUI khớp phần lớn số đo:** danh sách ở mục "Mặc định SwiftUI đã khớp".
+- **Không khớp hoặc cần đặt tay (02/11/2026):**
+  - Sidebar: mặc định 144, System Settings 232; đặt `navigationSplitViewColumnWidth(232)` thì mọi số sidebar trùng.
+  - Lề trên form: 20 so với 12; Dấu giữ 20 (D9: không đè thông số hệ thống).
+  - Thẻ của `Form(.grouped)` tối đa 704 pt (mục "Độ rộng tối đa của Form dạng nhóm").
+  - Hàng chỉ có `Text` cao 36 so với 37,5; nút trong hàng chỉ có nút: SwiftUI căn trái, System Settings căn phải.
+  - Chi tiết và việc đã giải quyết ở mục "Cần chỉnh / không khớp".
+- **Sheet (đo 02/11/2026, sửa 03/11/2026 cho khớp mã):** nút trên `toolbar` cho đúng thanh nút của System Settings, thẻ `Form(.grouped)` cho đúng lề và khoảng cách thẻ; `List` trong `Form(.grouped)` bị tắt cuộn nên danh sách đặt trong `GroupBox`. Chi tiết ở mục "Sheet". Chiều cao thẻ danh sách (188) lấy từ mockup, giữ hay đổi là câu hỏi mở cho người dùng.
+- **Icon ứng dụng trong hàng (02/11/2026):** khung 32 cho hàng có dòng phụ, 24 cho hàng một dòng kèm control; mục "Icon ứng dụng trong hàng".
+- **Nút mở/thu kiểu "Nâng cao" (02/11/2026):** System Settings không có hàng mở/thu nào trong 13 pane đã rà; `DisclosureGroup` trong Form lệch cách vẽ hàng và không mở được qua Accessibility API, nên giữ nút + chevron; D9 đã ghi đúng lý do này. Mục "Nút mở/thu kiểu 'Nâng cao'".
+- **Cụm Lùi/Tiến và sidebar cố định (05/11 và 06/11/2026):** `ControlGroup` với `.controlGroupStyle(.navigation)` giữ thanh 52 và tiêu đề hệ thống 15 đậm (đo 05/11/2026). Sidebar của System Settings cố định độ rộng (đo 05/11/2026); sidebar cố định của Dấu (từ 06/11/2026) chưa đo trên cửa sổ thật. Mục "Cần chỉnh / không khớp".
+- **Cửa sổ System Settings cố định độ rộng 740, chỉ đổi được chiều cao (đo 09/11/2026):** mục "Cửa sổ có đổi rộng được không". Cửa sổ Cài đặt của Dấu làm theo: rộng cố định 740, chỉ đổi chiều cao (từ 09/11/2026).
+- Tài liệu Apple không công bố các số 704, 20, 12, 37,5; mọi số trong file là số đo trên máy, có thể đổi theo phiên bản macOS (mục "Nguồn API").
+
 ## Chuẩn đối chiếu: System Settings (macOS 27.2)
 
-Số đo phục vụ D9: khi mockup và macOS khác nhau về bố cục, khoảng cách, cỡ chữ hay hình dáng control thì theo System Settings. Đo ngày 02/11/2026 trên macOS 27.2 (26B123), giao diện Tối (không đổi giao diện khi đo), màn Retina 2x. Đơn vị pt, gốc toạ độ ở góc trên trái cửa sổ.
+Số đo phục vụ D9: khi mockup và macOS khác nhau về bố cục, khoảng cách, cỡ chữ hay hình dáng control thì theo System Settings.
 
-**Cách đo.** System Settings: đọc khung phần tử bằng Accessibility API (role, x y w h) ở các pane Bàn phím, Giao diện, Âm thanh, Màn hình khoá, Desktop & Dock, Ngày & Giờ, Thông báo, Màn hình, Cài đặt chung, Bàn di chuột (chỉ mở bằng URL `x-apple.systempreferences:`, không bấm gì); chụp cửa sổ bằng `screencapture -l`, đọc mép, màu, bán kính góc theo pixel. Cỡ chữ suy ra bằng cách so độ rộng nét chữ đo được với độ rộng tính bằng `NSFont.systemFont` ở các cỡ và độ đậm; độ đậm ghi "≈" khi hai mức sát nhau. "SwiftUI mặc định": một app thử ngoài repo, `NavigationSplitView` + `List` sidebar 4 hàng (ô icon 20 pt màu, chữ) + `Form { Section … }.formStyle(.grouped)` + `.navigationTitle`, không `listRowInsets`, không padding; chạy ở 820×600, 740×560 và rộng 1000–1400. Số SwiftUI ở cột so sánh lấy ở cửa sổ 740×560 với `.searchable(placement: .sidebar)` và cột sidebar 232 khi có ghi; còn lại là mặc định thuần.
+Đo ngày 02/11/2026 trên macOS 27.2 (26B123), giao diện Tối (không đổi giao diện khi đo), màn Retina 2x. Đơn vị pt, gốc toạ độ ở góc trên trái cửa sổ.
+
+**Cách đo.**
+- System Settings:
+  - Đọc khung phần tử bằng Accessibility API (role, x y w h) ở các pane Bàn phím, Giao diện, Âm thanh, Màn hình khoá, Desktop & Dock, Ngày & Giờ, Thông báo, Màn hình, Cài đặt chung, Bàn di chuột (chỉ mở bằng URL `x-apple.systempreferences:`, không bấm gì).
+  - Chụp cửa sổ bằng `screencapture -l`, đọc mép, màu, bán kính góc theo pixel.
+  - Cỡ chữ suy ra bằng cách so độ rộng nét chữ đo được với độ rộng tính bằng `NSFont.systemFont` ở các cỡ và độ đậm; độ đậm ghi "≈" khi hai mức sát nhau.
+- "SwiftUI mặc định":
+  - Một app thử ngoài repo: `NavigationSplitView` + `List` sidebar 4 hàng (ô icon 20 pt màu, chữ) + `Form { Section … }.formStyle(.grouped)` + `.navigationTitle`, không `listRowInsets`, không padding.
+  - Chạy ở 820×600, 740×560 và rộng 1000–1400.
+  - Số SwiftUI ở cột so sánh lấy ở cửa sổ 740×560 với `.searchable(placement: .sidebar)` và cột sidebar 232 khi có ghi; còn lại là mặc định thuần.
 
 Lưu ý khi đọc số: máy đo đang hiện thanh cuộn kiểu cũ (luôn hiện), nên hàng sidebar của System Settings rộng 215 thay vì 232; app thử không có thanh cuộn ở sidebar.
 
@@ -85,9 +112,20 @@ Lưu ý khi đọc số: máy đo đang hiện thanh cuộn kiểu cũ (luôn hi
 | Ô tìm | Không có | Không có | Dưới trái, 226 × 26 (kiểu cũ) | `searchable` trong sheet: trên phải, 183 × 24, cách mép trên và phải 20 |
 | Tiêu đề | Không có | Không có | Một dòng chữ 13 ở trên trái | `navigationTitle` không hiện (không có NavigationStack); có NavigationStack thì tiêu đề nằm hàng riêng dưới ô tìm, x 48 |
 
-Sheet thêm quy tắc của Dấu (đo 02/11/2026, macOS 27.2): `List` đặt trong `Form(.grouped)` bị tắt cuộn (vùng cuộn bên trong không có thanh cuộn, lăn chuột không đổi hàng nào, `scrollDisabled(false)` và `\.isScrollEnabled` không bật lại), nên danh sách đặt ngoài Form, trong `GroupBox` (thẻ hệ thống), chỉ hàng "Khi đang gõ" còn trong Form. `searchable` luôn tạo thanh riêng ở đầu sheet và `ToolbarItem(.navigation / .principal)` không hiện trong sheet, nên không đặt được tiêu đề cùng hàng; dùng `NSSearchField` (control hệ thống) cùng hàng với tiêu đề, 183 × 24 như `searchable`, cách mép trên và phải 20.
+Sheet thêm quy tắc của Dấu (đo 02/11/2026, macOS 27.2):
+- `List` đặt trong `Form(.grouped)` bị tắt cuộn: vùng cuộn bên trong không có thanh cuộn, lăn chuột không đổi hàng nào, `scrollDisabled(false)` và `\.isScrollEnabled` không bật lại.
+  - Nên danh sách đặt ngoài Form, trong `GroupBox` (thẻ hệ thống); chỉ hàng "Khi đang gõ" còn trong Form.
+- `searchable` luôn tạo thanh riêng ở đầu sheet và `ToolbarItem(.navigation / .principal)` không hiện trong sheet, nên không đặt được tiêu đề cùng hàng.
+  - Dùng `NSSearchField` (control hệ thống) cùng hàng với tiêu đề, 183 × 24 như `searchable`, cách mép trên và phải 20.
 
-Kết luận cho sheet của Dấu (sửa 03/11/2026 cho khớp mã; bản trước mô tả thiết kế `Form` + `searchable` đã bỏ): nút trên `toolbar` cho ra đúng thanh nút của sheet System Settings, thẻ `Form(.grouped)` cho ra đúng lề và khoảng cách thẻ. Sheet của System Settings không có tiêu đề; nội dung của mockup có tiêu đề, nên `AddAppRuleSheet` đặt một hàng đầu gồm tiêu đề bên trái và `NSSearchField` bên phải (183 × 24, cách mép trên và phải 20, cỡ của `searchable` trong sheet), rồi danh sách trong `GroupBox`, rồi `Form(.grouped)` chỉ có thẻ "Khi đang gõ", rồi thanh nút. Chiều cao thẻ danh sách (188) lấy từ mockup, không có số System Settings tương ứng; giữ hay đổi là câu hỏi mở cho người dùng (D9).
+Kết luận cho sheet của Dấu (sửa 03/11/2026 cho khớp mã):
+- Nút trên `toolbar` cho ra đúng thanh nút của sheet System Settings; thẻ `Form(.grouped)` cho ra đúng lề và khoảng cách thẻ.
+- Sheet của System Settings không có tiêu đề; nội dung của mockup có tiêu đề. `AddAppRuleSheet` đặt, từ trên xuống:
+  - một hàng đầu gồm tiêu đề bên trái và `NSSearchField` bên phải (183 × 24, cách mép trên và phải 20, cỡ của `searchable` trong sheet);
+  - danh sách trong `GroupBox`;
+  - `Form(.grouped)` chỉ có thẻ "Khi đang gõ";
+  - thanh nút.
+- Chiều cao thẻ danh sách (188) lấy từ mockup, không có số System Settings tương ứng; giữ 188: không có số chuẩn nào để thay, và đổi không giúp gì cho người dùng.
 
 ### Độ rộng tối đa của Form dạng nhóm (lỗi "cột hẹp ở giữa")
 
@@ -108,7 +146,14 @@ Kết luận cho sheet của Dấu (sửa 03/11/2026 cho khớp mã; bản trư�
 | Mục đăng nhập › Mở khi đăng nhập (cùng pane) | Bảng có cột "Item / Kind" | 26 | 14 × 14 | 16 | — |
 | Thẻ đầu pane: Thông báo, Siri (`com.apple.Siri-Settings.extension`) | Icon pane, tên + mô tả | thẻ 72 | 26 × 26 từ x 264 | Icon pane (ô vuông bo góc, vẽ kín khung): 26 | x 302 |
 
-Không gặp hàng nào hiện icon ứng dụng 28 hay 48. Áp dụng cho Dấu (`AppIcon`): hàng "Quy tắc riêng" và danh sách của sheet thêm quy tắc (một dòng, kèm control) 24 như Trợ năng; hàng "Đề xuất" (có dòng phụ) 32 như Hoạt động nền và Thông báo; thẻ đầu "Cập nhật & hỗ trợ" 32 để nét vẽ icon app bằng 26 như icon ở thẻ đầu pane. Khoảng icon → chữ của Dấu giữ 8 (`HStack` mặc định); System Settings 9–10. Kiểm lại trên cửa sổ thật của Dấu (màn Retina, cùng ngày): nét vẽ icon hàng "Đề xuất" và thẻ đầu "Cập nhật & hỗ trợ" 26 × 26 từ x 265, trùng System Settings.
+Không gặp hàng nào hiện icon ứng dụng 28 hay 48.
+
+Áp dụng cho Dấu (`AppIcon`):
+- Hàng "Quy tắc riêng" và danh sách của sheet thêm quy tắc (một dòng, kèm control): 24 như Trợ năng.
+- Hàng "Đề xuất" (có dòng phụ): 32 như Hoạt động nền và Thông báo.
+- Thẻ đầu "Cập nhật & hỗ trợ": 32, để nét vẽ icon app bằng 26 như icon ở thẻ đầu pane.
+- Khoảng icon → chữ của Dấu giữ 8 (`HStack` mặc định); System Settings 9–10.
+- Kiểm lại trên cửa sổ thật của Dấu (màn Retina, cùng ngày): nét vẽ icon hàng "Đề xuất" và thẻ đầu "Cập nhật & hỗ trợ" 26 × 26 từ x 265, trùng System Settings.
 
 ### Cửa sổ có đổi rộng được không
 
@@ -122,11 +167,25 @@ Không gặp hàng nào hiện icon ứng dụng 28 hay 48. Áp dụng cho Dấu
 | Style mask qua `CGWindowListCopyWindowInfo` | Không đọc được: thông tin cửa sổ chỉ có `Alpha, Bounds, IsOnscreen, Layer, MemoryUsage, Name, Number, OwnerName, OwnerPID, SharingState, StoreType` |
 | Khung lưu trong cài đặt (`defaults read com.apple.systempreferences`, container) | Không có khoá khung cửa sổ |
 
-Kết luận: AppKit báo cửa sổ **đổi được kích thước** (kích thước ghi được, nút phóng to bật), nhưng các cách đọc trên không tách được chiều ngang với chiều dọc: một cửa sổ chỉ đổi được chiều cao cũng cho đúng các kết quả này. Chưa kiểm chứng được độ rộng có cố định ở 740 hay không mà không kéo thử cửa sổ. Dấu giữ 740–976 (thẻ không chạm giới hạn 704 của Form), chờ người dùng kéo thử mép phải cửa sổ System Settings để chốt.
+Kết luận:
+- AppKit báo cửa sổ **đổi được kích thước** (kích thước ghi được, nút phóng to bật).
+- Các cách đọc trên không tách được chiều ngang với chiều dọc: một cửa sổ chỉ đổi được chiều cao cũng cho đúng các kết quả này.
+- Đo trực tiếp ngày 09/11/2026 (macOS 27.2, 26B123; System Settings mở ở pane mặc định, cửa sổ 740 × 765): đặt `AXSize` qua System Events rồi đọc lại.
+  - Đặt rộng 940: đọc lại 740. Đặt rộng 590: đọc lại 740. Độ rộng **cố định ở 740**.
+  - Đặt cao 915: đọc lại 876 (cao hơn 765, thấp hơn giá trị đặt, có lẽ do giới hạn của màn hình). Chiều cao **đổi được**.
+  - Trả về 740 × 765 và vị trí cũ, rồi thoát System Settings (trước khi đo nó không chạy).
+- Dấu làm theo từ 09/11/2026: cửa sổ Cài đặt rộng cố định 740 (`SettingsScene.minSize`), chỉ đổi chiều cao. Trước đó Dấu cho kéo rộng tới 976.
 
 ### Nút mở/thu kiểu "Nâng cao"
 
-Rà 02/11/2026 bằng Accessibility API ở các pane Wi-Fi, Mạng, Bàn phím, Bàn di chuột, Chia sẻ, Desktop & Dock, Thanh menu, Màn hình khoá, Màn hình, Spotlight, Trợ năng, Âm thanh, Pin (mở bằng URL, không bấm): **không pane nào có hàng mở/thu** (`AXDisclosureTriangle` hay nút chevron xoay). Tuỳ chọn nâng cao của System Settings nằm ở nhóm riêng có tiêu đề (Chia sẻ › "Advanced"), hoặc sau nút mở sheet ("Nâng cao…" ở Màn hình, "Chi tiết…" ở Wi-Fi), hoặc nút "Show Detail" (i) ở cuối hàng. Thử `DisclosureGroup(isExpanded:)` (nhãn `LabeledContent("Nâng cao") { tóm tắt }`, nội dung là hai công tắc) trong `Section` của Form dạng nhóm, cửa sổ thật 740 × 560 trên màn Retina, so với nút hệ thống + chevron đang dùng (D9). Bản thử build riêng, không đưa vào mã:
+Rà 02/11/2026 bằng Accessibility API ở các pane Wi-Fi, Mạng, Bàn phím, Bàn di chuột, Chia sẻ, Desktop & Dock, Thanh menu, Màn hình khoá, Màn hình, Spotlight, Trợ năng, Âm thanh, Pin (mở bằng URL, không bấm): **không pane nào có hàng mở/thu** (`AXDisclosureTriangle` hay nút chevron xoay).
+
+Tuỳ chọn nâng cao của System Settings nằm ở một trong ba chỗ:
+- nhóm riêng có tiêu đề (Chia sẻ › "Advanced");
+- sau nút mở sheet ("Nâng cao…" ở Màn hình, "Chi tiết…" ở Wi-Fi);
+- nút "Show Detail" (i) ở cuối hàng.
+
+Thử `DisclosureGroup(isExpanded:)` (nhãn `LabeledContent("Nâng cao") { tóm tắt }`, nội dung là hai công tắc) trong `Section` của Form dạng nhóm, cửa sổ thật 740 × 560 trên màn Retina, so với nút hệ thống + chevron đang dùng (D9). Bản thử build riêng, không đưa vào mã:
 
 | | `DisclosureGroup` | Nút + chevron (hiện tại) |
 |---|---|---|
@@ -135,7 +194,10 @@ Rà 02/11/2026 bằng Accessibility API ở các pane Wi-Fi, Mạng, Bàn phím,
 | Mở ra: hàng mở → hàng con đầu | **Không có vạch ngăn**; chữ "Nâng cao" kết thúc y 497,5, nhãn hàng con bắt đầu y 501,5 (sát 4 pt) | Có vạch ngăn của Form; nhãn hàng con y 513 (cách 21, lề 10 của hàng) |
 | Trợ năng | `AXDisclosureTriangle` **không có action nào**; `AXDisclosing` không ghi được: không mở được qua Accessibility API (chưa thử bằng VoiceOver thật) | `AXButton` "Nâng cao" có `AXPress`, giá trị là tóm tắt, gợi ý "Mở rộng/Thu gọn" |
 
-Kết luận: trên macOS 27.2 lý do cũ trong D9 ("DisclosureGroup làm thụt lề sai bố cục") không còn đúng, nhưng `DisclosureGroup` trong Form vẫn lệch cách System Settings vẽ hàng (không vạch ngăn, hàng con dính vào hàng mở) và không mở được qua trợ năng; System Settings cũng không có hàng mở/thu để làm mẫu. Giữ nút + chevron; đổi câu lý do trong D9 cần người dùng quyết.
+Kết luận:
+- Trên macOS 27.2 lý do cũ trong D9 ("DisclosureGroup làm thụt lề sai bố cục") không còn đúng.
+- Nhưng `DisclosureGroup` trong Form vẫn lệch cách System Settings vẽ hàng (không vạch ngăn, hàng con dính vào hàng mở) và không mở được qua trợ năng; System Settings cũng không có hàng mở/thu để làm mẫu.
+- Giữ nút + chevron; lý do đã ghi trong D9.
 
 ### Mặc định SwiftUI đã khớp
 
@@ -148,15 +210,30 @@ Kết luận: trên macOS 27.2 lý do cũ trong D9 ("DisclosureGroup làm thụt
 
 ### Cần chỉnh / không khớp
 
-Đã giải quyết trong app (02/11/2026, d446a09): sidebar 232 + ô tìm `.searchable(.sidebar)`; lề trên giữ 20 (D9: không đè thông số hệ thống); nút sidebar bị gỡ như System Settings, tiêu đề trang là `PageTitle` 15 đậm vì tiêu đề hệ thống co khi gỡ nút; cửa sổ 740–976 để không chạm giới hạn 704; nút trong hàng chỉ có nút căn phải.
+Đã giải quyết trong app (02/11/2026, d446a09):
+- sidebar 232 + ô tìm `.searchable(.sidebar)`;
+- lề trên giữ 20 (D9: không đè thông số hệ thống);
+- nút sidebar bị gỡ như System Settings;
+- cửa sổ rộng cố định 740 như System Settings, nên thẻ không bao giờ chạm giới hạn 704;
+- nút trong hàng chỉ có nút căn phải.
+
+Từ 05/11/2026 thanh công cụ có cụm Lùi/Tiến như System Settings nên tiêu đề hệ thống giữ 15 đậm (trước đó là `PageTitle` tự vẽ).
+
+Chi tiết từng mục:
 
 - **Độ rộng sidebar**: mặc định 144, System Settings 232. Mặc định làm cụt chữ "Cập nhật & hỗ trợ". Cách gần nhất: `navigationSplitViewColumnWidth(232)`; đặt rồi thì mọi số đo sidebar và lề form trùng System Settings.
 - **Ô tìm ở sidebar**: mặc định không có; dùng `.searchable(placement: .sidebar)` là ra đúng khung của System Settings.
-- **Lề trên form**: 20 so với 12. Chưa tìm được cách giảm bằng API công khai (`contentMargins` chỉ cộng thêm). Theo D9 thì không tự chỉnh thông số hệ thống; giữ 20 hay tìm cách khớp 12 cần người dùng quyết.
-- **Nút trên thanh công cụ**: SwiftUI tự thêm nút ẩn/hiện sidebar; System Settings có Lùi/Tiến thay vào đó. Bỏ nút bằng `.toolbar(removing: .sidebarToggle)` làm thanh công cụ co từ 52 xuống 32 và tiêu đề trang thành chữ tiêu đề cửa sổ; muốn giữ thanh 52 thì để nguyên nút.
+- **Lề trên form**: 20 so với 12. Chưa tìm được cách giảm bằng API công khai (`contentMargins` chỉ cộng thêm). Dấu giữ 20 theo D9 (không chỉnh thông số hệ thống); muốn khớp 12 thì phải đổi D9, việc của người dùng.
+- **Nút trên thanh công cụ**: SwiftUI tự thêm nút ẩn/hiện sidebar; System Settings có Lùi/Tiến thay vào đó.
+  - Bỏ nút bằng `.toolbar(removing: .sidebarToggle)` làm thanh công cụ co từ 52 xuống 32 và tiêu đề trang thành chữ tiêu đề cửa sổ; muốn giữ thanh 52 thì để nguyên nút.
+  - Đã giải quyết (05/11/2026): cụm Lùi/Tiến bằng `ControlGroup { … }.controlGroupStyle(.navigation)` ở `.navigation` giữ thanh 52 và tiêu đề hệ thống 15 đậm.
+  - Đo trên Dấu (`run.sh` 05/11/2026): nút Lùi 239.5,8 36×36, Tiến 275.5,8 37×36, khung tiêu đề x 316.5 (1x: 317).
+  - System Settings đo cùng ngày: 240,8 36×36 và 276,8 37×36, vạch ngăn x 276, nét tiêu đề từ x 326.
+  - Sidebar của System Settings (05/11/2026): kéo đường chia 200 pt sang hai bên và bấm đúp không đổi độ rộng, không thu được, con trỏ là mũi tên.
+  - Sidebar của Dấu (từ 06/11/2026, D9): cố định bằng `NSSplitViewController` của app, chưa đo trên cửa sổ thật (đo trên app thử: `docs/research/SWIFTUI-WINDOW-API.md` mục 10).
 - **Hàng chỉ có `Text`**: cao 36, không phải 37.5 như hàng nhãn + control (System Settings không có hàng nhãn trơn để so).
 - **Hàng chỉ có nút**: SwiftUI căn nút trái; System Settings căn nút phải.
-- **Form rộng**: thẻ không quá 704; với cửa sổ khoảng 740–976 thì không ảnh hưởng.
+- **Form rộng**: thẻ không quá 704; cửa sổ rộng cố định 740 nên không ảnh hưởng.
 
 ### Nguồn API (tài liệu Apple)
 

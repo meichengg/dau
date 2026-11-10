@@ -3,20 +3,20 @@ import SwiftUI
 import DauShared
 
 /// Host app: the Settings window (M4) and the onboarding window (M5). Updates (M7)
-/// come later. The entry point is main.swift, which pins the localization first.
+/// come later. The entry point is main.swift.
 ///
 /// The Settings window is the app's main window, so opening Dấu from Finder shows it;
-/// the input menu's "Cài đặt Dấu…" item is meant to open the app the same way. ⌘,
+/// the input menu's "Dấu Settings…" item is meant to open the app the same way. ⌘,
 /// reopens it after it was closed. At launch, while Dấu is not installed or not enabled,
-/// the onboarding window opens instead (`LaunchRouter`); "Trợ giúp › Hướng dẫn thiết
-/// lập…" opens it at any time.
+/// the onboarding window opens instead (`LaunchRouter`); "Help › Setup Guide…" opens it at
+/// any time.
 ///
 /// At launch, an older input method in ~/Library/Input Methods is replaced by the one
 /// inside the app (D7, D37: `upgradeIfNeeded`); nothing happens when none is installed.
 struct DauApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var model = SettingsModel.appGroup()
-    @State private var inputSource = DauApp.makeInputSourceStatus()
+    @State private var inputSource = InputSourceStatus()
     @State private var onboarding: OnboardingFlow
     @State private var actions: InputMethodActions
     private let opensOnboarding: Bool
@@ -31,7 +31,7 @@ struct DauApp: App {
         DebugCapture.actions = actions
         #endif
         opensOnboarding = opens
-        DauApp.upgradeAtLaunch(installer)
+        DauApp.upgradeAtLaunch(actions)
         DauApp.checkInstalled(actions)
     }
 
@@ -40,30 +40,22 @@ struct DauApp: App {
         #if DEBUG
         if CommandLine.arguments.contains("--tampered") { actions.forceTampered(); return }
         // Captures run a re-signed copy: its team does not match the installed one.
-        if DebugCapture.onboardingDirectory != nil || DebugCapture.uninstallDirectory != nil
-            || DebugCapture.bannerDirectory != nil { return }
+        if DebugCapture.onboardingDirectory != nil || DebugCapture.uninstallDirectory != nil { return }
         #endif
-        actions.checkInstalled()
+        Task { await actions.checkInstalledAfterUpgrade() }
     }
 
     /// D7: replace an older installed input method. The user just opened Dấu (or the
     /// updater relaunched it), so no word is being typed; the input method still ends
     /// its word before it quits (InputMethodLifecycle).
     @MainActor
-    private static func upgradeAtLaunch(_ installer: InputMethodInstaller) {
+    private static func upgradeAtLaunch(_ actions: InputMethodActions) {
         #if DEBUG
         // Window captures and debug commands never touch the installed input method.
         if DebugCapture.onboardingDirectory != nil || DebugCapture.uninstallDirectory != nil
-            || DebugCapture.bannerDirectory != nil || DebugCapture.settingsWindowOnly { return }
+            || DebugCapture.settingsWindowOnly { return }
         #endif
-        Task { @MainActor in
-            do {
-                let outcome = try await installer.upgradeIfNeeded()
-                installLogger.notice("event=launch-upgrade outcome=\(String(describing: outcome), privacy: .public)")
-            } catch {
-                installLogger.error("event=launch-upgrade-failed error=\(String(describing: error), privacy: .public)")
-            }
-        }
+        actions.startLaunchUpgrade()
     }
 
     /// The onboarding flow on the real services, and whether it opens at launch.
@@ -72,8 +64,7 @@ struct DauApp: App {
         var flow = OnboardingFlow(detector: WorkspaceInputMethodDetector(), installer: installer)
         var opens = LaunchRouter.opensOnboarding(installer.status())
         #if DEBUG
-        if DebugCapture.uninstallDirectory != nil || DebugCapture.bannerDirectory != nil
-            || DebugCapture.settingsWindowOnly { opens = false }
+        if DebugCapture.uninstallDirectory != nil || DebugCapture.settingsWindowOnly { opens = false }
         if let step = DebugCapture.onboardingStep {
             // `--onboarding <1|2|3>`: open onboarding at that step.
             flow.forcedStartStep = step
@@ -97,18 +88,8 @@ struct DauApp: App {
         return (flow, opens)
     }
 
-    private static func makeInputSourceStatus() -> InputSourceStatus {
-        #if DEBUG
-        // `--not-enabled`: show the "Dấu chưa được bật" banner (real-window checks).
-        if CommandLine.arguments.contains("--not-enabled") || DebugCapture.bannerDirectory != nil {
-            return InputSourceStatus(fixed: false)
-        }
-        #endif
-        return InputSourceStatus()
-    }
-
     var body: some Scene {
-        Window(Text("Cài đặt Dấu"), id: SettingsScene.id) {
+        Window(Text("Dấu Settings"), id: SettingsScene.id) {
             SettingsWindow()
                 .environment(model)
                 .environment(inputSource)
@@ -128,9 +109,20 @@ struct DauApp: App {
         .windowResizability(.contentSize)
         .commands {
             SettingsCommands()
+            // View › Back (⌘[) and Forward (⌘]). No `SidebarCommands`: the sidebar is
+            // fixed, so the View menu has no Show/Hide Sidebar (D9).
+            SettingsHistoryCommands()
+            // Edit › Find › Find… (⌘F) for the sidebar search (D9;
+            // `SettingsSplitViewController.performFindPanelAction(_:)`). The system's
+            // built-in group "for searching, editing, and transforming selections of
+            // text" (https://developer.apple.com/documentation/swiftui/texteditingcommands):
+            // the text-editing placement's Find, Spelling and Grammar, Substitutions,
+            // Transformations and Speech submenus
+            // (https://developer.apple.com/documentation/swiftui/commandgroupplacement/textediting).
+            TextEditingCommands()
         }
 
-        Window(Text("Thiết lập Dấu"), id: OnboardingScene.id) {
+        Window(Text("Set Up Dấu"), id: OnboardingScene.id) {
             OnboardingWindow()
                 .environment(onboarding)
                 .environment(model)
@@ -139,6 +131,9 @@ struct DauApp: App {
                 .environment(\.layoutProbe, DebugCapture.probe)
                 #endif
         }
+        // "Hides both the window's title and the backing of the titlebar area"
+        // (https://developer.apple.com/documentation/swiftui/hiddentitlebarwindowstyle):
+        // the mockup has no title text. The title stays set, for the Window menu.
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)
     }
@@ -170,12 +165,12 @@ struct SettingsCommands: Commands {
 
     var body: some Commands {
         CommandGroup(replacing: .appSettings) {
-            Button("Cài đặt…") { openWindow(id: SettingsScene.id) }
+            Button("Settings…") { openWindow(id: SettingsScene.id) }
                 .keyboardShortcut(",", modifiers: .command)
         }
         // Dấu has no help book: the Help menu holds the setup guide instead.
         CommandGroup(replacing: .help) {
-            Button("Hướng dẫn thiết lập…") { openWindow(id: OnboardingScene.id) }
+            Button("Setup Guide…") { openWindow(id: OnboardingScene.id) }
         }
     }
 }
@@ -186,7 +181,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         DebugCapture.applyAppearanceOverride()
         DebugCapture.startOnboarding()
         DebugCapture.startUninstall()
-        DebugCapture.startBanner()
         #endif
     }
 

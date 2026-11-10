@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Menu nguồn đầu vào của hệ thống</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.sw{appearance:none;-webkit-appearance:none;width:40px;height:24px;border-radius:12px;background:#c7c7cc;margin:0;position:relative;flex:none;cursor:default}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:10px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sw:checked{background:var(--acc)}
+.sw:checked::after{left:18px}
+.pop{all:unset;box-sizing:border-box;height:26px;padding:0 10px 0 12px;border-radius:999px;background:#fff;border:1px solid rgba(0,0,0,.12);box-shadow:0 1px 1px rgba(0,0,0,.06);font-size:13px;display:inline-flex;align-items:center;gap:6px;color:#1d1d1f;cursor:default;white-space:nowrap}
+.btn{all:unset;box-sizing:border-box;height:30px;padding:0 16px;border-radius:999px;font-size:13px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;background:rgba(0,0,0,.06);color:#1d1d1f;cursor:default;white-space:nowrap;text-decoration:none}
+.btn.pri{background:var(--acc);color:#fff}
+.btn.danger{color:#b42318}
+.seg{display:flex;padding:2px;border-radius:999px;background:rgba(0,0,0,.07);gap:2px}
+.sg{all:unset;box-sizing:border-box;flex:1;height:26px;padding:0 14px;border-radius:999px;font-size:13px;display:flex;align-items:center;justify-content:center;color:#1d1d1f;cursor:default;white-space:nowrap}
+.sg.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15);font-weight:600}
+.card{background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06)}
+.row{display:flex;align-items:center;gap:12px;min-height:48px;padding:10px 16px;box-sizing:border-box;font-size:13px;color:#1d1d1f}
+.sep{height:1px;background:rgba(0,0,0,.07);margin-left:16px}
+.hint{font-size:12px;color:#6e6e73;line-height:1.4}
+.sec{font-size:13px;font-weight:600;color:#1d1d1f;padding:0 4px}
+.side{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:9px;height:32px;padding:0 8px;border-radius:9px;font-size:13px;color:#1d1d1f;cursor:default;text-decoration:none}
+.side.on{background:var(--acc);color:#fff;font-weight:500}
+.tile{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex:none}
+.kc{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 6px;box-sizing:border-box;border-radius:6px;background:#fff;border:1px solid rgba(0,0,0,.14);box-shadow:0 1px 0 rgba(0,0,0,.12);font-size:12px;color:#1d1d1f}
+.chip{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;font-size:12px;background:rgba(0,0,0,.06);color:#3a3a3c}
+.mi{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:6px;width:100%;height:26px;padding:0 10px;border-radius:7px;font-size:13px;color:#1d1d1f;cursor:default}
+.mi.on{background:var(--acc);color:#fff}
+.mk{width:14px;flex:none;display:inline-flex}
+.k{margin-left:auto;color:#6e6e73;font-size:12px}
+
+</style>
+</helmet>
+<div style="width: 760px; height: 560px; position: relative; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; --acc: {{accent}}">
+<div aria-hidden="true" style="position: absolute; inset: 0; background: #1c2f4a; overflow: hidden">
+<div style="position: absolute; width: 620px; height: 620px; border-radius: 50%; background: #2d6cb5; left: -160px; top: -220px"></div>
+<div style="position: absolute; width: 520px; height: 520px; border-radius: 50%; background: #e08a3c; right: -140px; bottom: -200px"></div>
+<div style="position: absolute; width: 380px; height: 380px; border-radius: 50%; background: #6a4fa3; right: 120px; top: -120px"></div>
+<div style="position: absolute; width: 300px; height: 300px; border-radius: 50%; background: #2f8f7a; left: 180px; bottom: -150px"></div>
+</div>
+<div style="position: absolute; top: 0; left: 0; right: 0; height: 30px; display: flex; align-items: center; justify-content: flex-end; gap: 16px; padding: 0 16px; font-size: 13px; font-weight: 500; color: #fff">
+<span style="display: flex; align-items: center"><svg width="22" height="16" viewBox="0 0 22 16" role="img" aria-label="Nguồn đầu vào: Dấu – Tiếng Việt" style="flex: none; display: block"><path fill-rule="evenodd" fill="#ffffff" d="M4.5 0.5 H17.5 A4 4 0 0 1 21.5 4.5 V11.5 A4 4 0 0 1 17.5 15.5 H4.5 A4 4 0 0 1 0.5 11.5 V4.5 A4 4 0 0 1 4.5 0.5 Z M6.5 3.75 H8.3 L11 10.125 L13.7 3.75 H15.5 L11.9 12.25 H10.1 Z"/></svg></span>
+<span>Th 5 29 thg 10  9:41</span>
+</div>
+<div style="position: absolute; top: 36px; right: 96px; width: 280px; box-sizing: border-box; padding: 6px; border-radius: 14px; display: flex; flex-direction: column; gap: 1px; background: rgba(246,246,249,0.80); backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%); border: 1px solid rgba(255,255,255,0.45); box-shadow: 0 24px 64px rgba(0,0,0,0.4)">
+<button class="mi on"><span class="mk"><svg width="12" height="12" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><svg width="22" height="16" viewBox="0 0 22 16" aria-hidden="true" style="flex: none"><path fill-rule="evenodd" fill="currentColor" d="M4.5 0.5 H17.5 A4 4 0 0 1 21.5 4.5 V11.5 A4 4 0 0 1 17.5 15.5 H4.5 A4 4 0 0 1 0.5 11.5 V4.5 A4 4 0 0 1 4.5 0.5 Z M6.5 3.75 H8.3 L11 10.125 L13.7 3.75 H15.5 L11.9 12.25 H10.1 Z"/></svg>Dấu – Tiếng Việt</button><button class="mi"><span class="mk"></span><span aria-hidden="true" style="flex: none; width: 22px; height: 16px; border-radius: 4px; background: currentColor; display: inline-flex; align-items: center; justify-content: center"><span style="font-size: 10px; font-weight: 700; color: rgba(246,246,249,0.95); mix-blend-mode: normal">US</span></span>U.S.</button><div style="height: 1px; background: rgba(0,0,0,0.1); margin: 5px 10px"></div>
+<span title="Tiêu đề nhóm do hệ thống đặt theo tên bộ gõ" style="font-size: 12px; font-weight: 600; color: #8e8e93; padding: 4px 10px 2px">Dấu</span><button class="mi"><span class="mk"><svg width="12" height="12" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>Telex</button><button class="mi"><span class="mk"></span>VNI</button><button class="mi"><span class="mk"></span>Telex đơn giản</button><div style="height: 1px; background: rgba(0,0,0,0.1); margin: 5px 10px"></div>
+<button class="mi"><span class="mk"></span>Cài đặt Dấu…</button>
+<div style="height: 1px; background: rgba(0,0,0,0.1); margin: 5px 10px"></div><button class="mi" title="Mục của hệ thống, mọi bộ gõ đều có"><span class="mk"></span>Edit Text Substitutions…</button><div style="height: 1px; background: rgba(0,0,0,0.1); margin: 5px 10px"></div><button class="mi" title="Mục của hệ thống, mọi bộ gõ đều có"><span class="mk"></span>Show Emoji &amp; Symbols</button><button class="mi" title="Mục của hệ thống, mọi bộ gõ đều có"><span class="mk"></span>Show Keyboard Viewer</button><div style="height: 1px; background: rgba(0,0,0,0.1); margin: 5px 10px"></div><button class="mi" title="Mục của hệ thống, mọi bộ gõ đều có"><span class="mk"></span>Show Input Source Name</button><div style="height: 1px; background: rgba(0,0,0,0.1); margin: 5px 10px"></div><button class="mi" title="Mục của hệ thống, mọi bộ gõ đều có"><span class="mk"></span>Open Keyboard Settings…</button>
+</div>
+<div style="position: absolute; left: 40px; bottom: 40px; width: 330px; box-sizing: border-box; padding: 18px 20px; border-radius: 16px; background: rgba(246,246,249,0.80); backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%); border: 1px solid rgba(255,255,255,0.45); box-shadow: 0 24px 64px rgba(0,0,0,0.4)">
+<span style="display: block; font-size: 12px; color: #5e5e63; margin-bottom: 8px">Ghi chú</span>
+<span style="font-size: 15px; color: #1d1d1f">Hẹn gặp lúc 3 giờ chiều nhé<span style="display: inline-block; width: 2px; height: 18px; background: var(--acc); vertical-align: -3px"></span></span>
+<span style="display: block; margin: 6px 0 0 206px; width: max-content"><span style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 26px; border-radius: 13px; background: #0a84ff; box-shadow: 0 2px 8px rgba(0,0,0,0.25); "><svg width="18" height="13" viewBox="0 0 22 16" aria-hidden="true" style="flex: none; display: block"><path fill-rule="evenodd" fill="#ffffff" d="M4.5 0.5 H17.5 A4 4 0 0 1 21.5 4.5 V11.5 A4 4 0 0 1 17.5 15.5 H4.5 A4 4 0 0 1 0.5 11.5 V4.5 A4 4 0 0 1 4.5 0.5 Z M6.5 3.75 H8.3 L11 10.125 L13.7 3.75 H15.5 L11.9 12.25 H10.1 Z"/></svg></span></span>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0A64D8","options":["#0A64D8","#7A3FD1","#C2410C","#1F7A4D"]},"$preview":{"width":760,"height":560}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent ?? '#0A64D8' };
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+id	method	options	keys	source_ref
+main.rs:no_restore_for_valid_word#1	telex		tieens␣	src/main.rs
+main.rs:no_restore_for_vni_numeric_shorthand#1	vni		d9m␣	src/main.rs
+main.rs:capslock_path_keeps_telex_tone_position#1	telex		DUYEETJ	src/main.rs
+main.rs:no_send_needed_for_plain_letter_with_capslock_only_case_change#1	telex		z	src/main.rs

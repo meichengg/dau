@@ -4,11 +4,11 @@
 # BUNDLE_ID_PREFIX is settled in D24 (com.codefastlabs.dau, from the domain dau.codefastlabs.com);
 # ask the user before changing it. The input mode ID is hard-coded in
 # Apps/DauInputMethod/Info.plist and Resources/InfoPlist.xcstrings: update both with it.
-# DEVELOPMENT_TEAM is the maintainer's free Personal Team (M58DANM3ZP). Builds are signed
-# "Apple Development" with automatic signing: the App Group needs a real Team ID, macOS
-# rejects it for ad-hoc signed builds (see DECISIONS.md). To build under another team, pass
-# DEVELOPMENT_TEAM=<your team> to xcodebuild. No provisioning profile is needed: a
-# Team-ID-prefixed App Group is allowed on macOS without one.
+# DEVELOPMENT_TEAM lives in Config/Signing.xcconfig: the maintainer's free Personal Team
+# (M58DANM3ZP) unless Config/Local.xcconfig (git-ignored) sets another one (CONTRIBUTING.md).
+# Builds are signed "Apple Development" with automatic signing: the App Group needs a real
+# Team ID, macOS rejects it for ad-hoc signed builds (see DECISIONS.md). No provisioning
+# profile is needed: a Team-ID-prefixed App Group is allowed on macOS without one.
 # Developer ID signing + notarization are set up in M7 (CI overrides via xcodebuild settings).
 
 name: Dau
@@ -17,7 +17,7 @@ options:
   bundleIdPrefix: com.codefastlabs.dau
   deploymentTarget:
     macOS: "14.0"
-  developmentLanguage: vi
+  developmentLanguage: en
   createIntermediateGroups: true
   generateEmptyDirectories: true
   groupSortPosition: top
@@ -31,13 +31,16 @@ packages:
   DauShared:
     path: Packages/DauShared
 
+configFiles:
+  Debug: Config/Signing.xcconfig
+  Release: Config/Signing.xcconfig
+
 settings:
   base:
     BUNDLE_ID_PREFIX: com.codefastlabs.dau
     # App Group shared by the host app and the input method (settings, compatibility list).
-    # TeamIdentifierPrefix is "M58DANM3ZP." (empty only for ad-hoc builds).
+    # TeamIdentifierPrefix is "<DEVELOPMENT_TEAM>." (empty only for ad-hoc builds).
     APP_GROUP_ID: $(TeamIdentifierPrefix)$(BUNDLE_ID_PREFIX).shared
-    DEVELOPMENT_TEAM: M58DANM3ZP
     CODE_SIGN_STYLE: Automatic
     CODE_SIGN_IDENTITY: Apple Development
     ENABLE_HARDENED_RUNTIME: YES
@@ -115,9 +118,6 @@ targets:
     sources:
       - path: Apps/DauInputMethod/Sources
       - path: Apps/DauInputMethod/Resources
-      # macOS's own names and layout names (D38), shared with the host app's sources.
-      - path: Apps/Dau/Sources/SystemUINames.swift
-      - path: Apps/Dau/Sources/LayoutNames.swift
       # The host app's asset catalog (AppIcon only), shared rather than copied: the
       # bundle gets the same Finder icon as Dấu.app (CFBundleIconName, Assets.car).
       # The input source icons (menu bar V, ⌃Space indicator) are not app icons: they
@@ -167,7 +167,6 @@ targets:
       - path: Apps/DauInputMethod/Sources/PerfLog.swift
       - path: Apps/DauInputMethod/Sources/EngineSettings.swift
       - path: Apps/DauInputMethod/Sources/HostApp.swift
-      - path: Apps/DauInputMethod/Sources/LegacyModeMemory.swift
       - path: Apps/DauInputMethod/Sources/LaunchOrigin.swift
     dependencies:
       - package: DauEngine

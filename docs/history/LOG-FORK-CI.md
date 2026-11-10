@@ -1,0 +1,7 @@
+# Nhật ký bản fork: CI phát hành
+
+Bản fork `meichengg/dau` thêm CI đóng gói và tự đồng bộ với upstream. Mục này tách khỏi
+`docs/PROGRESS.md` để upstream viết lại file đó không sinh xung đột.
+
+- 04/11/2026 — CI phát hành trên bản fork (người dùng yêu cầu): `.github/workflows/release.yml` (chạy tay hoặc theo thẻ `v*`) dựng bản Release universal trên runner `xcode-27`, ký tay trong `scripts/release/sign-app.sh` (dùng Apple Development nếu có secret, ngược lại tự ký chứng chỉ tạm), đóng gói `.pkg` cài vào `/Applications`; `scripts/release/pkg/postinstall` bỏ cờ cách ly rồi mở app để app tự cài và bật bộ gõ (D37), không phải đăng xuất. Đã cài bản ký Apple Development lên máy này: bộ gõ ở `~/Library/Input Methods`, `com.apple.inputsources` có mục Dấu, nguồn đang chọn là Dấu, `containermanagerd` APPROVED container `433PH64SVW.com.codefastlabs.dau.shared`. Chưa chạy được `scripts/selftest/typing` (thiếu quyền Trợ năng cho tiến trình chạy script, máy không có Xcode). Chứng chỉ trên máy thuộc team 433PH64SVW, khác M58DANM3ZP trong `project.yml` nên CI truyền `APP_GROUP_ID=433PH64SVW.com.codefastlabs.dau.shared`.
+- 10/11/2026 — đồng bộ upstream tự động (người dùng yêu cầu): `.github/workflows/sync-upstream.yml` chạy theo lịch, merge `codefastlabs/dau` vào fork rồi tự gọi `release.yml`; `docs/PROGRESS.md` lấy nguyên bản upstream khi xung đột (`-X theirs` cho riêng file đó), nhật ký của fork nằm ở file này. Gộp upstream 869f05a (159 commit, tới M6 bước 1d) vào fork: xung đột duy nhất ở `docs/PROGRESS.md`.

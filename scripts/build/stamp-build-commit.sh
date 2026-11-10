@@ -10,7 +10,7 @@
 #
 # The file is rewritten only when the commit changes, so it costs no rebuild otherwise.
 # Without git (or outside a checkout) it holds an empty string and the version shows alone.
-set -u
+set -uo pipefail
 # Also run by xcodegen (preGenCommand) from the repo root, without SRCROOT.
 SRCROOT=${SRCROOT:-${0:A:h:h:h}}
 out="${SRCROOT}/build/generated/BuildCommit.txt"

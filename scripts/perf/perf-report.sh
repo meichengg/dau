@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/zsh
 # Prints per-app timing of the input method from the unified log.
 # Side effects: none
 # Approach A (N3/D11): p50/p99 of `selectedRange()`, `insertText`, `attributedSubstring` (D20), and the whole
@@ -9,6 +9,23 @@
 # is set (`defaults write -g DauPerfLog -bool true`, then `defaults delete -g DauPerfLog`
 # when done; it applies to text fields opened after it is set), category "perf": event
 # kind, durations in ns and the client app's bundle ID. Never the text typed (D8).
+# D20 reads are also counted as d20_<mark|letter>_seeded<0|1>, and diff_<0|1> counts the
+# keys of a seeded word whose result differs from an engine that never read the text.
+#
+# Gaps between keys (M6, app under load). Each key line carries t_ns (CLOCK_UPTIME_RAW when
+# the input method's handle started: the key reached the input method) and ev_ns (the
+# event's own timestamp, same clock: when the key event was made, 0 if unknown). Per app:
+#   gap_<a_lt2ms|b_2to10ms|c_10to20ms|d_ge20ms>   keys by t_ns gap to the app's previous
+#                                                  key line (gaps over 1 s are skipped:
+#                                                  another run, or a pause in typing)
+#   evgap_<same buckets>                           the same with ev_ns: how the keys were
+#                                                  sent. Even evgap with bunched gap = the
+#                                                  app held keys back and let them go together
+#   gap_<lt10|ge10>_<mismatch|resync>              mismatch and resync/resync_pass keys by
+#                                                  their t_ns gap (under/over 10 ms)
+#   lag_us                                         t_ns - ev_ns, p50/p99/max
+# Mouse clicks and shortcuts (⌘A ⌘C…) are key lines too (kind reset/commit) and count in
+# the gaps. Lines written before these fields existed parse as before and give no gap rows.
 #
 # Usage:
 #   scripts/perf/perf-report.sh                      last 1 hour, all apps
@@ -21,6 +38,8 @@
 # DAU_IM_BUNDLE_ID.
 set -euo pipefail
 
+source "${0:A:h:h}/lib/log.sh"
+
 LAST="1h"
 APP_FILTER=""
 INPUT=""
@@ -29,8 +48,8 @@ while [[ $# -gt 0 ]]; do
     --last) LAST="${2:?--last cần giá trị, ví dụ 10m}"; shift 2 ;;
     --app) APP_FILTER="${2:?--app cần tên app hoặc bundle ID}"; shift 2 ;;
     --input) INPUT="${2:?--input cần đường dẫn file}"; shift 2 ;;
-    -h|--help) awk 'NR==1{next} /^#/{sub(/^# ?/,""); print; next} {exit}' "$0"; exit 0 ;;
-    *) echo "Tham số không hợp lệ: $1" >&2; exit 2 ;;
+    -h|--help) log_usage "$0"; exit 0 ;;
+    *) log_die 2 "Tham số không hợp lệ: $1" ;;
   esac
 done
 
@@ -65,6 +84,9 @@ read_log | awk -v want="$(printf '%s' "$APP_FILTER" | tr '[:upper:]' '[:lower:]'
     app = field("app"); kind = field("kind")
     if (app == "" || kind == "") next
     if (want != "" && index(tolower(app), want) == 0) next
+    d20 = field("d20"); seeded = field("seeded"); diff = field("diff")
+    if (d20 != "" && d20 != "none") print app, "d20_" d20 "_seeded" seeded, 1
+    if (diff == "0" || diff == "1") print app, "diff_" diff, 1
     print app, "count_" kind, 1
     h = field("handle_ns"); s = field("sel_ns"); i = field("ins_ns"); r = field("read_ns")
     if (h != "") print app, "handle_us", h / 1000
@@ -76,6 +98,46 @@ read_log | awk -v want="$(printf '%s' "$APP_FILTER" | tr '[:upper:]' '[:lower:]'
     # D20 "Thêm dấu cho từ đã gõ": attributedSubstring, and the whole key when it read.
     if (r != "" && r + 0 >= 0) print app, "attributedSubstring_us", r / 1000
     if (kind ~ /^seed/ && h != "") print app, "handle_seed_us", h / 1000
+    # Arrival times (lines from before t_ns/ev_ns existed have neither: no gap rows).
+    t = field("t_ns"); e = field("ev_ns")
+    if (t != "") {
+      timed[app] = 1
+      if (app in last_t) {
+        gap = (t - last_t[app]) / 1e6
+        # Over 1 s: another run, or a word typed after a pause; not a gap between keys.
+        if (gap >= 0 && gap <= 1000) {
+          print app, "gap_" bucket(gap), 1
+          bad = (kind == "mismatch") ? "mismatch" : (kind ~ /^resync/ ? "resync" : "")
+          if (bad != "") print app, (gap < 10 ? "gap_lt10_" : "gap_ge10_") bad, 1
+        }
+      }
+      last_t[app] = t
+      if (e != "" && e + 0 > 0) {
+        lag = (t - e) / 1000
+        if (lag >= 0) print app, "lag_us", lag
+        if (app in last_e) {
+          gap = (e - last_e[app]) / 1e6
+          if (gap >= 0 && gap <= 1000) print app, "evgap_" bucket(gap), 1
+        }
+        last_e[app] = e
+      }
+    }
+  }
+  function bucket(ms) {
+    if (ms < 2) return "a_lt2ms"
+    if (ms < 10) return "b_2to10ms"
+    if (ms < 20) return "c_10to20ms"
+    return "d_ge20ms"
+  }
+  END {
+    # Every bucket for every app with arrival times, zero included, so readers of the
+    # report (scripts/selftest/load/run.sh) always find the four rows.
+    split("a_lt2ms b_2to10ms c_10to20ms d_ge20ms", names, " ")
+    for (app in timed) {
+      for (k = 1; k <= 4; k++) { print app, "gap_" names[k], 0; print app, "evgap_" names[k], 0 }
+      print app, "gap_lt10_mismatch", 0; print app, "gap_lt10_resync", 0
+      print app, "gap_ge10_mismatch", 0; print app, "gap_ge10_resync", 0
+    }
   }
   / event name=/ {
     app = field("app"); name = field("name")
@@ -85,12 +147,12 @@ read_log | awk -v want="$(printf '%s' "$APP_FILTER" | tr '[:upper:]' '[:lower:]'
 ' | sort -k1,1 -k2,2 -k3,3g > "$TMP"
 
 if [[ ! -s "$TMP" ]]; then
-  echo "Không có số đo nào (subsystem $SUBSYSTEM, --last $LAST${APP_FILTER:+, app $APP_FILTER})."
-  echo "Kiểm tra: bộ gõ bản Debug đã cài và đã gõ thử trong khoảng thời gian này chưa?"
+  log_warn "Không có số đo nào (subsystem $SUBSYSTEM, --last $LAST${APP_FILTER:+, app $APP_FILTER})."
+  log_hint "Kiểm tra: bộ gõ bản Debug đã cài và đã gõ thử trong khoảng thời gian này chưa?"
   if [[ -n "$APP_FILTER" ]]; then
-    echo "--app so khớp một phần bundle ID (không phân biệt hoa thường), không nhận PID."
-    echo "Các app có số đo trong khoảng này:"
-    read_log | grep -o 'app=[^ ]*' | sort -u | sed 's/^app=/  /' || true
+    log_hint "--app so khớp một phần bundle ID (không phân biệt hoa thường), không nhận PID."
+    log_step "Các app có số đo trong khoảng này"
+    read_log | grep -o 'app=[^ ]*' | sort -u | sed 's/^app=//' | while IFS= read -r a; do log_detail "$a"; done || true
   fi
   exit 0
 fi
@@ -102,8 +164,8 @@ echo "Đơn vị: µs. p50/p99 theo hạng gần nhất (nearest rank). n = số
 awk '
   function flush(   i50, i99) {
     if (n == 0) return
-    if (metric ~ /^(count_|event_)/) {
-      printf "  %-22s %8d\n", metric, n
+    if (metric ~ /^(count_|event_|d20_|diff_|gap_|evgap_)/) {
+      printf "  %-22s %8d\n", metric, sum
     } else {
       i50 = int((50 * n + 99) / 100); if (i50 < 1) i50 = 1
       i99 = int((99 * n + 99) / 100); if (i99 < 1) i99 = 1
@@ -112,11 +174,11 @@ awk '
   }
   {
     if ($1 != app) {
-      flush(); n = 0; metric = ""
+      flush(); n = 0; sum = 0; metric = ""
       app = $1; printf "\n%s\n", app
     }
-    if ($2 != metric) { flush(); n = 0; metric = $2 }
-    n++; v[n] = $3
+    if ($2 != metric) { flush(); n = 0; sum = 0; metric = $2 }
+    n++; v[n] = $3; sum += $3
   }
   END { flush() }
 ' "$TMP"

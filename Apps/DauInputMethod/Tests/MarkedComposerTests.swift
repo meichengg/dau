@@ -178,6 +178,18 @@ struct MarkedComposerTests {
         #expect(s.passedWithMarked == 0)
     }
 
+    @Test("D20 (E8 too) not in underline mode: text already in the app is never read, the letter starts a word")
+    func noD20() {
+        var s = Session()
+        s.app.document = "q"   // ⟦q⟧uer: in-place mode would join it into "quẻ"
+        s.type("uer ")
+        // The client protocol has no position or text read; the word is "uer" alone,
+        // "ủe" is not a syllable, so the word end restores it (D4).
+        #expect(s.app.document == "quer ")
+        #expect(s.app.onlyNotFound)
+        #expect(s.overCalls == 0)
+    }
+
     @Test("reset events (click, deactivate, client/source/settings change) commit; empty does nothing")
     func commitEvent() {
         var s = Session()
@@ -215,7 +227,7 @@ struct MarkedComposerTests {
         let alphabet: [KeyRoute] = Array("aeiouydwsfrxjzcnghtqkpblmAEO0123456789".unicodeScalars).map { .character($0) }
             + Array(" ,.!?()\"'-".unicodeScalars).map { .character($0) }
             + [.backspace, .backspace, .backspace, .endWord, .ignore]
-        var rng = SplitMix(seed: 0xDA0)
+        var rng = SplitMix(0xDA0)
         for options in [DauSettings.defaults.engineOptions,
                         EngineOptions(inputMethod: .vni),
                         EngineOptions(inputMethod: .simpleTelex, freeMarking: false, autoRestore: false),
@@ -273,18 +285,5 @@ struct MarkedComposerTests {
         #expect(UnderlineMode.isOn(settings: settings, bundleID: "com.apple.TextEdit", debugForced: ["com.apple.TextEdit"]))
         #expect(!UnderlineMode.isOn(settings: settings, bundleID: "?", debugForced: ["?"]))
         #expect(!UnderlineMode.isOn(settings: settings, bundleID: "", debugForced: [""]))
-    }
-}
-
-/// Deterministic generator for the random sequences.
-private struct SplitMix {
-    var state: UInt64
-    init(seed: UInt64) { state = seed }
-    mutating func next() -> UInt64 {
-        state &+= 0x9E37_79B9_7F4A_7C15
-        var z = state
-        z = (z ^ (z >> 30)) &* 0xBF58_476D_1CE4_E5B9
-        z = (z ^ (z >> 27)) &* 0x94D0_49BB_1331_11EB
-        return z ^ (z >> 31)
     }
 }

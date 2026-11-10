@@ -51,11 +51,11 @@ struct AddAppRuleSheet: View {
         VStack(spacing: 0) {
             // One header row, title left and the system search field right.
             HStack {
-                Text("Thêm quy tắc cho ứng dụng")
+                Text("Add App Rule")
                     .font(.headline)
                     .accessibilityAddTraits(.isHeader)
                 Spacer()
-                SheetSearchField(text: $query, prompt: String(localized: "Tìm trong Ứng dụng"))
+                SheetSearchField(text: $query, prompt: String(localized: "Search Applications"))
                     .frame(width: Self.searchWidth, height: Self.searchHeight)
             }
             .padding([.horizontal, .top], Self.margin)
@@ -67,16 +67,16 @@ struct AddAppRuleSheet: View {
                 }
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
-                .accessibilityLabel(Text("Ứng dụng"))
+                .accessibilityLabel(Text("Apps"))
             }
             .frame(height: Self.listHeight)
             .padding(.horizontal, Self.margin)
             .padding(.top, Self.headerToCard)
             Form {
                 Section {
-                    Picker("Khi đang gõ", selection: $underline) {
-                        Text("Không gạch chân").tag(false)
-                        Text("Có gạch chân").tag(true)
+                    Picker("While typing", selection: $underline) {
+                        Text("No Underline").tag(false)
+                        Text("Underline").tag(true)
                     }
                     .pickerStyle(.segmented)
                 }
@@ -94,14 +94,14 @@ struct AddAppRuleSheet: View {
         .onChange(of: query) { selection = visibleSelection }
         .toolbar {
             ToolbarItem(placement: .automatic) {
-                Button("Chọn ứng dụng khác…", action: chooseApp)
+                Button("Choose Another App…", action: chooseApp)
             }
             ToolbarItem(placement: .cancellationAction) {
-                Button("Huỷ", role: .cancel) { dismiss() }
+                Button("Cancel", role: .cancel) { dismiss() }
                     .keyboardShortcut(.cancelAction)
             }
             ToolbarItem(placement: .confirmationAction) {
-                Button("Thêm", action: add)
+                Button("Add", action: add)
                     .keyboardShortcut(.defaultAction)
                     .disabled(visibleSelection == nil)
             }
@@ -120,7 +120,7 @@ struct AddAppRuleSheet: View {
             Text(verbatim: candidate.name)
                 .lineLimit(1)
             if candidate.suggested {
-                Chip(Text("Đề xuất"), height: 20, fontSize: 11)
+                Chip(Text("Suggested"), height: 20, fontSize: 11)
             }
         }
         .tag(candidate.id)
@@ -155,8 +155,8 @@ struct AddAppRuleSheet: View {
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         panel.directoryURL = URL(fileURLWithPath: "/Applications", isDirectory: true)
-        panel.prompt = String(localized: "Chọn")
-        panel.message = String(localized: "Chọn ứng dụng cần quy tắc riêng")
+        panel.prompt = String(localized: "Choose")
+        panel.message = String(localized: "Choose an app that needs its own rule")
         guard panel.runModal() == .OK, let url = panel.url,
               let id = Bundle(url: url)?.bundleIdentifier else { return }
         if !candidates.contains(where: { $0.bundleID == id }) {

@@ -21,6 +21,9 @@ enum Reference {
 
     /// The four sections of the Settings window, in sidebar order.
     static let sections = ["typing", "smart", "apps", "updates"]
+    /// Content (docs/UI.md): their titles, in the same order: the system's page title and
+    /// the window's title.
+    static let sectionTitles = ["Gõ phím", "Thông minh", "Ứng dụng", "Cập nhật & hỗ trợ"]
 
     // MARK: Tolerance
 
@@ -31,8 +34,8 @@ enum Reference {
 
     // MARK: Window size and limits (System Settings; the minimum height is deliberate)
 
-    /// System Settings opens every pane at 740 × 560; Dấu's window opens at this size
-    /// when it has no saved frame (run.sh deletes the saved one before launching).
+    /// System Settings opens every pane at 740 × 560; every pass sets Dấu's window to it
+    /// before measuring (a launch can open at a frame macOS restored).
     static let windowWidth: CGFloat = 740
     static let windowHeight: CGFloat = 560
     static var windowSize: CGSize { CGSize(width: windowWidth, height: windowHeight) }
@@ -41,14 +44,10 @@ enum Reference {
     /// The content column's minimum height (deliberate); the window adds the toolbar.
     static let contentMinHeight: CGFloat = 400
     static let minWindowHeight: CGFloat = contentMinHeight + toolbarHeight
-    /// System (SwiftUI, measured on macOS 27.2): a grouped Form keeps its cards at most
-    /// 704 wide and centers them in a wider column (SYSTEM-SETTINGS-REFERENCE.md, "Độ rộng
-    /// tối đa của Form dạng nhóm"; UI-CHECKS item 1). So the widest useful column is 704
-    /// plus two margins, and at the widest window the first card is exactly 704.
-    static let formCardMaxWidth: CGFloat = 704
-    static let formColumnMaxWidth: CGFloat = formCardMaxWidth + 2 * formMargin
-    /// Widest window: sidebar + the widest column.
-    static let maxWindowWidth: CGFloat = sidebarWidth + formColumnMaxWidth
+    /// Widest window: System Settings' window has a fixed width (setting another width
+    /// reads back 740, measured on macOS 27.2; SYSTEM-SETTINGS-REFERENCE.md, "Cửa sổ có đổi
+    /// rộng được không"), and so has Dấu's.
+    static let maxWindowWidth: CGFloat = windowWidth
     /// Probe: sizes the real window is asked for to read its limits.
     static let probeLargeSize = CGSize(width: 1400, height: 700)
     static let probeSmallSize = CGSize(width: 600, height: 300)
@@ -70,12 +69,50 @@ enum Reference {
     /// the toolbar color at the top of the button's frame.
     static let addButtonInkThreshold = 8
 
-    // MARK: Title (System Settings)
+    // MARK: Back/Forward (System Settings; labels: Mockup)
 
-    /// The page title starts at the detail column's margin (sidebar + form margin)...
-    static let titleX: CGFloat = sidebarWidth + formMargin
+    /// Mockup: the buttons' accessibility labels (artboards "Settings…", aria-label), in the
+    /// String Catalog.
+    static let backLabel = "Lùi"
+    static let forwardLabel = "Tiến"
+    /// System Settings' pair is one cluster, 73 × 36 at x 240, y 8. Probe (a test app
+    /// with the same `ControlGroup`, matched System Settings pixel for pixel):
+    /// Back 36 wide at 240, Forward 37 wide at 276, the separator at 276.
+    static let backButtonFrame = CGRect(x: 240, y: 8, width: 36, height: 36)
+    static let forwardButtonFrame = CGRect(x: 276, y: 8, width: 37, height: 36)
+
+    // MARK: Title (System Settings, after the Back/Forward cluster)
+
+    /// The system's page title (an AXStaticText in the toolbar) starts here. Probe
+    /// (the same toolbar in a test app): text frame at x ≈ 317, glyphs from
+    /// ≈ 326; System Settings' glyphs start at ≈ 324 (SYSTEM-SETTINGS-REFERENCE.md). Not
+    /// yet measured on Dấu: the first run.sh of the new shell confirms or replaces it.
+    static let titleX: CGFloat = 317
     /// ... and is centered in the toolbar.
     static let titleCenterY: CGFloat = toolbarHeight / 2
+
+    // MARK: System menus (D38: titles read from the system's string tables)
+
+    /// System: run.sh launches the app with `-AppleLanguages (vi)`, so the system's own
+    /// menu items are in that language; English is accepted too. Read from the
+    /// system's string tables, never typed here (D38).
+    static let menuLanguages = ["vi", "en"]
+    static let menuStringTables = [
+        "/System/Library/Frameworks/SwiftUI.framework/Versions/A/Resources/MainMenu.loctable",
+        "/System/Library/Frameworks/SwiftUI.framework/Versions/A/Resources/Localizable.loctable",
+        "/System/Library/Frameworks/AppKit.framework/Resources/MenuCommands.loctable",
+    ]
+    /// Key (the English text) of the View menu: its Back and Forward items are read while
+    /// the add-rule sheet is up.
+    static let viewMenuKey = "View"
+    /// Edit › Find › Find… (the Find submenu of `TextEditingCommands`, added by `DauApp`):
+    /// present, ⌘F, enabled while the sidebar list has the focus; ⌘F puts the focus in the
+    /// sidebar search field (D9).
+    static let editMenuKey = "Edit"
+    static let findSubmenuKey = "Find"
+    static let findItemKey = "Find…"
+    /// Character and the Accessibility API's modifier mask (0 = ⌘ alone).
+    static let findShortcut = ("F", 0)
 
     // MARK: Close button (System Settings)
 
@@ -87,20 +124,30 @@ enum Reference {
     static let sidebarWidth: CGFloat = 232
     /// Inset of the search field and the selection cell from the column's edges.
     static let sidebarInset: CGFloat = 10
-    /// Search pill: x 10, y 61, 212 × 28.
-    static let sidebarSearchY: CGFloat = 61
+    /// Search field: x 10, 212 × 28 as System Settings. Deliberate y: Dấu's field is an
+    /// `NSSearchField` at the large size with the sidebar's standard 10 pt inset under the
+    /// toolbar (D9, fixed sidebar), so it sits at 62 where System Settings' is at 61; D9
+    /// accepts the 1–2 pt rather than an offset tuned to the pixel. Probe (a test app
+    /// with the same split view): 10,62 212×28.
+    static let sidebarSearchY: CGFloat = 62
     static let sidebarSearchHeight: CGFloat = 28
     static var sidebarSearchFrame: CGRect {
         CGRect(x: sidebarInset, y: sidebarSearchY, width: sidebarWidth - 2 * sidebarInset, height: sidebarSearchHeight)
     }
     static let sidebarRowHeight: CGFloat = 32
-    /// First row's y (below the search field).
-    static let sidebarFirstRowY: CGFloat = 98
+    /// First row's y (below the search field). Deliberate, as the search field: 100,
+    /// System Settings 98 (D9 accepts 1–2 pt). Probe: 100.
+    static let sidebarFirstRowY: CGFloat = 100
     /// Selection cell of row `i`: x 10, as wide as the column minus both insets.
     static func sidebarRowFrame(_ i: Int) -> CGRect {
         CGRect(x: sidebarInset, y: sidebarFirstRowY + sidebarRowHeight * CGFloat(i),
                width: sidebarWidth - 2 * sidebarInset, height: sidebarRowHeight)
     }
+    /// Probe: the selected row's background is sampled in a square of this side, this far
+    /// left of the selection cell's right edge (clear of the label), at the row's middle
+    /// (--focus: accent selection at launch).
+    static let selectionSampleSize: CGFloat = 8
+    static let selectionSampleRightInset: CGFloat = 12
     /// Icon tile: x 19, 20 tall.
     static let sidebarIconX: CGFloat = 19
     static let sidebarIconSize: CGFloat = 20
@@ -128,36 +175,18 @@ enum Reference {
     static let headerToCard: CGFloat = 10
     /// A card to the next section header.
     static let cardToHeader: CGFloat = 30
-    /// Card to card (no header between).
-    static let cardGap: CGFloat = 10
 
     // MARK: Controls (System Settings)
 
     static let switchSize = CGSize(width: 36, height: 16)
-    /// Buttons, pop-ups, segmented controls (also the sheet's search field and buttons).
+    /// Buttons, pop-ups, segmented controls.
     static let controlHeight: CGFloat = 24
 
-    // MARK: Add-rule sheet (System Settings' Displays › Advanced… sheet, except where noted)
+    // MARK: Add-rule sheet
 
-    static let sheetWidth: CGFloat = 470
-    /// Cards, the search field's top and right, the buttons' right and bottom, and the
-    /// first item below the Form's top, all 20 from the edge.
-    static let sheetMargin: CGFloat = 20
-    /// Mockup, not System Settings: the app list card's height is the list card of the
-    /// "SettingsAppsAdd" artboard (`AddAppRuleSheet.listHeight`); System Settings' sheets
-    /// have no such list to measure. Whether it stays is an open question for the user
-    /// (D9: System Settings is the layout reference). The list scrolls inside it, so
-    /// "Khi đang gõ" stays in view.
-    static let sheetListHeight: CGFloat = 188
-    /// Buttons are at least 64 wide (a pt of slack is `tolerance`).
-    static let sheetButtonMinWidth: CGFloat = 64
-    static let sheetButtonHeight: CGFloat = controlHeight
-    static let sheetSearchHeight: CGFloat = controlHeight
-    /// Bottom of the Form to the top of the buttons.
-    static let sheetFormToButtons: CGFloat = 21
     /// Content: apps every macOS install has in /System/Applications and its Utilities
     /// folder, whose visible names are the same in English and Vietnamese (the sheet
-    /// shows localized names; checked on macOS 27.2, 03/11/2026). The sheet must list
+    /// shows localized names; checked on macOS 27.2). The sheet must list
     /// them unless the user stored a rule for one.
     static let alwaysInstalledApps = ["TextEdit", "FaceTime", "QuickTime Player", "Terminal"]
     /// Capture check (g): the uninstall alerts' sheets are at least this big (deliberate
@@ -179,8 +208,8 @@ enum Reference {
     // MARK: Scroll and background checks, (a)–(d) (System for the scroller; the rest deliberate, content or probe)
 
     /// Content: a section taller than the default window, so check (d) has a scroll bar to
-    /// drive. The last in-app captures (03/11/2026, since removed) measured every section
-    /// taller than the default window; this is the one the earlier check (d) scrolled, and
+    /// drive. Every section measured taller than the default window on the in-app
+    /// captures (since removed); this is the one the earlier check (d) scrolled, and
     /// `scrolledProbeStartX` starts right of its title.
     static let scrollingSection = "updates"
     /// Probe: how far check (d) scrolls the page (through the scroll bar's value), and the
@@ -191,7 +220,7 @@ enum Reference {
     static let colorTolerance = 6.0
     /// Mean per-sample color difference allowed in the header once scrolled (of 255). The
     /// system's scroll edge blurs content under the toolbar, it does not hide it. Measured
-    /// 03/11/2026 on Cập nhật & hỗ trợ with the banner, Always bars, 2x: Dấu 6.8 dark / 5.2
+    /// on Cập nhật & hỗ trợ with the banner, Always bars, 2x: Dấu 6.8 dark / 5.2
     /// light; a build without `HardTopScrollEdge` (content sharp over the title, item 9)
     /// 31.8 / 31.2. System Settings (Appearance, General; 1x, dark, same sampling) 18–20.
     /// The limit lies halfway between Dấu and the broken build.
@@ -220,8 +249,9 @@ enum Reference {
     static let straySampleTop: CGFloat = 64
     static let straySampleStep: CGFloat = 16
     /// Probe: header region compared when scrolled; x from just right of the page title
-    /// ("Cập nhật & hỗ trợ" ends near 380) to 24 from the edge every 6; y 6...46 every 4.
-    static let scrolledProbeStartX: CGFloat = 400
+    /// ("Cập nhật & hỗ trợ", 127 wide at 15 pt bold, from `titleX` + 9: ends near 453) to
+    /// 24 from the edge every 6; y 6...46 every 4.
+    static let scrolledProbeStartX: CGFloat = 470
     static let scrolledProbeRightInset: CGFloat = 24
     static let scrolledProbeStepX: CGFloat = 6
     static let scrolledProbeY: Range<CGFloat> = 6..<46

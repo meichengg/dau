@@ -19,4 +19,12 @@ enum SystemSettings {
             NSWorkspace.shared.open(url)
         }
     }
+
+    /// General › Language & Region, whose "Applications" section sets a language for one
+    /// app (D41): the "Change…" of the Language row.
+    static func openLanguageAndRegion() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.Localization-Settings.extension") {
+            NSWorkspace.shared.open(url)
+        }
+    }
 }

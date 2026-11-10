@@ -1,12 +1,19 @@
-// Small helper for scripts/selftest/app-group.sh and scripts/selftest/typing/run.sh.
+// Small helper for scripts/selftest/app-group.sh, scripts/selftest/typing/run.sh,
+// scripts/selftest/load/run.sh, scripts/dev/doctor.sh and scripts/dev/clean-dau.sh.
 //
-//   input-source current          prints the ID of the selected keyboard input source
-//   input-source select <ID>      selects an input source that is ALREADY enabled
-//   input-source enabled <prefix> prints enabled, selectable sources whose ID starts with prefix
-//   input-source recorded         prints the third-party sources macOS records as enabled
+//   input-source current             prints the ID of the selected keyboard input source
+//   input-source select <ID>         selects an input source that is ALREADY enabled
+//   input-source enabled <prefix>    prints enabled, selectable sources whose ID starts with prefix
+//   input-source recorded            prints the third-party sources macOS records as enabled
+//   input-source count <key> <regex> reads a plist (`defaults export <domain> -`) on stdin and
+//                                    prints how many dict entries of array <key> have a
+//                                    "Bundle ID" that regex matches from its start; empty
+//                                    stdin counts as an empty plist (prints 0)
+//   input-source drop <key> <regex>  reads a plist on stdin and writes it to stdout (XML) with
+//                                    those entries left out of array <key>
 //
-// Trust: measured on macOS 27.2 (02/11/2026), the TIS "enabled" flag read from a fresh
-// process can be wrong (it said enabled after System Settings had removed Dấu). TIS is
+// Trust: the TIS "enabled" flag read from a fresh process can be wrong (it said enabled
+// after System Settings had removed Dấu; docs/research/M5-INSTALL.md 2.6). TIS is
 // only trusted for the CURRENT source (`current`). For every third-party source (ID not
 // starting with com.apple.) `enabled` and `select` also require an entry in
 // com.apple.inputsources › AppleEnabledThirdPartyInputSources, the record System Settings
@@ -16,7 +23,9 @@
 // It never enables, disables, adds or removes an input source (N4): `select` refuses a
 // source that is not enabled and select-capable. The self test uses it only to reselect
 // Dấu (so macOS launches the input method) and to give back the source that was selected
-// before.
+// before. `count` and `drop` are stdin-to-stdout filters that read and write no
+// preferences: clean-dau.sh itself runs `defaults export`/`defaults import` and reads the
+// domain back.
 import Carbon
 import Foundation
 
@@ -44,7 +53,7 @@ func enabledSources() -> [TISInputSource] {
 /// that has one, else its "Bundle ID" (the same IDs TIS uses for those sources). An input
 /// method that has modes is recorded twice, the method itself ("Keyboard Input Method",
 /// not select-capable) and each mode; only the modes are selectable, so the method entry
-/// is left out then (measured 03/11/2026: Dấu added with "+" records both).
+/// is left out then (Dấu added with "+" records both; docs/research/M5-INSTALL.md 2.6).
 func recordedSourceIDs() -> Set<String> {
     let value = CFPreferencesCopyAppValue("AppleEnabledThirdPartyInputSources" as CFString,
                                           "com.apple.inputsources" as CFString)
@@ -66,6 +75,35 @@ func isAppleSource(_ id: String) -> Bool { id.hasPrefix("com.apple.") }
 func fail(_ message: String, code: Int32 = 1) -> Never {
     FileHandle.standardError.write(Data((message + "\n").utf8))
     exit(code)
+}
+
+/// The top-level dictionary of the plist on stdin; empty stdin gives an empty dictionary
+/// when `emptyIsEmptyDict`, else fails.
+func readPlistFromStdin(emptyIsEmptyDict: Bool) -> [String: Any] {
+    let data = FileHandle.standardInput.readDataToEndOfFile()
+    if data.isEmpty {
+        if emptyIsEmptyDict { return [:] }
+        fail("empty plist on stdin")
+    }
+    do {
+        guard let dict = try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any] else {
+            fail("the plist on stdin is not a dictionary")
+        }
+        return dict
+    } catch {
+        fail("cannot read the plist on stdin: \(error.localizedDescription)")
+    }
+}
+
+/// Whether an array entry is a dictionary whose "Bundle ID" the regex matches from its start.
+func bundleIDMatcher(_ pattern: String) -> (Any) -> Bool {
+    let regex: NSRegularExpression
+    do { regex = try NSRegularExpression(pattern: pattern) } catch { fail("invalid regex: \(pattern)", code: 2) }
+    return { entry in
+        guard let dict = entry as? [String: Any] else { return false }
+        let id = dict["Bundle ID"] as? String ?? ""
+        return regex.firstMatch(in: id, options: .anchored, range: NSRange(id.startIndex..., in: id)) != nil
+    }
 }
 
 let arguments = Array(CommandLine.arguments.dropFirst())
@@ -119,6 +157,24 @@ case "select":
     let status = TISSelectInputSource(source)
     guard status == noErr else { fail("TISSelectInputSource(\(wanted)) failed: \(status)") }
 
+case "count":
+    guard arguments.count > 2 else { fail("usage: input-source count <key> <regex>", code: 2) }
+    let matches = bundleIDMatcher(arguments[2])
+    let plist = readPlistFromStdin(emptyIsEmptyDict: true)
+    print((plist[arguments[1]] as? [Any] ?? []).filter(matches).count)
+
+case "drop":
+    guard arguments.count > 2 else { fail("usage: input-source drop <key> <regex>", code: 2) }
+    let matches = bundleIDMatcher(arguments[2])
+    var plist = readPlistFromStdin(emptyIsEmptyDict: false)
+    plist[arguments[1]] = (plist[arguments[1]] as? [Any] ?? []).filter { !matches($0) }
+    do {
+        let out = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+        FileHandle.standardOutput.write(out)
+    } catch {
+        fail("cannot write the plist: \(error.localizedDescription)")
+    }
+
 default:
-    fail("usage: input-source current | enabled <prefix> | recorded | select <ID>", code: 2)
+    fail("usage: input-source current | enabled <prefix> | recorded | select <ID> | count <key> <regex> | drop <key> <regex>", code: 2)
 }

@@ -1,5 +1,18 @@
 // The word being typed, as letters (not keystrokes). Fixed capacity, no heap.
 
+/// Values of `Word.origin`.
+enum Origin {
+    /// Typed letter, or a modifier put on it by a key.
+    static let typed: UInt8 = 0
+    /// "ư" produced by a lone Telex `w` (D23), so a second `w` turns it back into the
+    /// letter w (D26 "ww" → "w").
+    static let loneW: UInt8 = 1
+    /// "ơ" of an open "uơ" whose horn was typed on the u (Telex "uwo", VNI "u7o"; D35).
+    /// A horn key typed next adds the horn on u ("nguwowif", "ngu7o72i" → "người")
+    /// instead of undoing (D26).
+    static let movedHorn: UInt8 = 2
+}
+
 struct Word: Sendable, Equatable {
     /// Letters tracked per word. D33 caps a word at 7 letters; consonant shortcuts
     /// (D21) can add two more when the word is rendered at a boundary.
@@ -10,9 +23,8 @@ struct Word: Sendable, Equatable {
     var base = SIMD16<UInt8>()
     var mod = SIMD16<UInt8>()
     var upper = SIMD16<UInt8>()
-    /// 1 when the letter is an "ư" produced by a lone Telex `w` (D23), so a second
-    /// `w` turns it back into the letter w (D26 "ww" → "w").
-    var standalone = SIMD16<UInt8>()
+    /// Where a letter's modifier came from (`Origin`).
+    var origin = SIMD16<UInt8>()
     var count = 0
     /// One tone per word; `tonePos` is the letter that shows it, or -1.
     var tone: UInt8 = Tone.none
@@ -22,12 +34,12 @@ struct Word: Sendable, Equatable {
     @inline(__always) func isVowel(_ i: Int) -> Bool { isVowelBase(base[i]) }
 
     @inline(__always)
-    mutating func append(base b: UInt8, mod m: UInt8, upper u: Bool, standalone s: Bool = false) {
+    mutating func append(base b: UInt8, mod m: UInt8, upper u: Bool, origin o: UInt8 = Origin.typed) {
         precondition(count < Word.capacity, "Word overflow")
         base[count] = b
         mod[count] = m
         upper[count] = u ? 1 : 0
-        standalone[count] = s ? 1 : 0
+        origin[count] = o
         count += 1
     }
 
@@ -37,9 +49,13 @@ struct Word: Sendable, Equatable {
         base[count] = 0
         mod[count] = 0
         upper[count] = 0
-        standalone[count] = 0
+        origin[count] = 0
         if tonePos == count { tone = Tone.none; tonePos = -1 }
     }
+
+    /// The word is the initial "qu" alone: its u is not a rhyme, so it shows a tone
+    /// typed right after it (D31) but keeps none after ⌫ (D32: "quá" ⌫ → "qu").
+    var isBareQu: Bool { count == 2 && code(0) == Ch.q && base[1] == Ch.u && mod[1] == Mod.none }
 
     var hasVowel: Bool {
         var i = 0
@@ -53,13 +69,15 @@ struct Word: Sendable, Equatable {
     /// The vowel cluster that can carry the tone, as a half-open range of indices.
     /// The `u` of "qu" and the `i` of "gi" (when another vowel follows) belong to the
     /// initial consonant, so "quá", "giá" put the tone on `a`, while "gì" keeps `i`.
+    /// A bare "qu" is treated like a bare "gi": its u holds a tone typed right after it
+    /// until the next vowel takes it (D31: "qusa" → "quá").
     /// Returns an empty range when there is no such cluster.
     func nucleus() -> (start: Int, end: Int) {
         var v = 0
         while v < count && !isVowel(v) { v += 1 }
         if v == count { return (count, count) }
         var s = v
-        if v == 1 && code(0) == Ch.q && base[1] == Ch.u {
+        if v == 1 && code(0) == Ch.q && base[1] == Ch.u && count > 2 {
             s = 2
         } else if v == 1 && code(0) == Ch.g && base[1] == Ch.i && count > 2 && isVowel(2) {
             s = 2
@@ -106,17 +124,26 @@ struct Word: Sendable, Equatable {
 
     /// "uơ"/"ưo" followed by another letter becomes "ươ" ("tưon" → "tươn",
     /// "đuơc" → "đươc", "huơu" → "hươu"). Without a following letter "uơ" stays, for
-    /// "thuở" and "huơ" (D35).
+    /// "thuở" and "huơ", and a typed "ưo" ending the word is that same pair: "uơ"
+    /// (D35 "Thứ tự u + móc + o": Telex "uwo", VNI "u7o"). An "ư" from a lone `w` is
+    /// not a typed u, so "two", "wood" keep their letters.
     mutating func normalizeHornedUO() {
         let (s, e) = nucleus()
         var i = s
         while i + 1 < e {
-            if base[i] == Ch.u && base[i + 1] == Ch.o && i + 2 < count {
+            if base[i] == Ch.u && base[i + 1] == Ch.o {
                 let uHook = mod[i] == Mod.hook
                 let oHook = mod[i + 1] == Mod.hook
-                if (uHook && mod[i + 1] == Mod.none) || (mod[i] == Mod.none && oHook) {
-                    mod[i] = Mod.hook
+                if i + 2 < count {
+                    if (uHook && mod[i + 1] == Mod.none) || (mod[i] == Mod.none && oHook) {
+                        mod[i] = Mod.hook
+                        mod[i + 1] = Mod.hook
+                        origin[i + 1] = Origin.typed
+                    }
+                } else if uHook && mod[i + 1] == Mod.none && origin[i] != Origin.loneW {
+                    mod[i] = Mod.none
                     mod[i + 1] = Mod.hook
+                    origin[i + 1] = Origin.movedHorn
                 }
             }
             i += 1
@@ -170,7 +197,7 @@ struct Word: Sendable, Equatable {
                 }
                 changed = true
             } else {
-                out.append(base: base[i], mod: mod[i], upper: upper[i] == 1, standalone: standalone[i] == 1)
+                out.append(base: base[i], mod: mod[i], upper: upper[i] == 1, origin: origin[i])
             }
             i += 1
         }

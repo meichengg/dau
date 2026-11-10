@@ -22,3 +22,12 @@ Chép nguyên từ `docs/PROGRESS.md` khi sắp xếp lại tài liệu (03/11/2
 | T6 | Chạy ma trận tương thích trên máy, ghi tự sửa chính tả (D4) | phiên chính + agent GUI | sau T4 |
 | T7 | VoiceOver đọc tên nguồn (D17), biểu tượng V | người dùng | bất kỳ lúc nào |
 | T8 | Kiểm toán M3 | auditor | cuối |
+
+## M5 (30/10/2026)
+| # | Việc | Agent | Song song |
+|---|---|---|---|
+| T1 | Trả lời câu hỏi mở: `TISRegisterInputSource`/`TISEnableInputSource` từ app chủ có cần người dùng xác nhận, có phải đăng xuất lần đầu không; app chủ có sandbox chép được bộ gõ vào `~/Library/Input Methods` không (temporary-exception); cách các bộ gõ mở cài/gỡ; danh sách bundle ID bộ gõ tiếng Việt cũ | researcher | cùng T2 |
+| T2 | Giao diện onboarding 3 bước theo artboard (OnboardingConflict, OnboardingEnable, Onboarding), dịch vụ cài/bật/phát hiện để giao diện gọi qua protocol, hiện đúng phím tắt hệ thống | app-ui-dev | cùng T1 |
+| T3 | Dịch vụ cài đặt thật: chép bộ gõ nhúng sẵn, đăng ký, bật (người dùng bấm, N4) có Hoàn tác, nâng cấp bản mới (dừng tiến trình cũ), gỡ cài đặt (D16, sheet xác nhận) | imk-dev (+ app-ui-dev nối giao diện) | sau T1 |
+| T4 | ~~Thử trên máy: gỡ bản Debug hiện tại rồi chạy onboarding từ đầu~~ — bỏ (người dùng chốt 04/11/2026). Phần gỡ qua app rồi chạy onboarding từ đầu đã làm 04/11 với bản Release (nhật ký 04/11); không thử trên tài khoản macOS mới | — | — |
+| T5 | Kiểm toán M5 | auditor | cuối |

@@ -18,7 +18,12 @@ import os
 ///    The input method's sandbox can read Info.plist of copies in /Applications but not
 ///    in a home folder (measured 02/11/2026: `deny file-read-data` for a DerivedData
 ///    copy), so a build that is neither running nor in /Applications never matches.
-/// 4. LaunchServices knows exactly one copy: open it even though its Info.plist cannot
+/// 4. Not registered: an app copied into /Applications without Finder (`ditto`, `cp`, a
+///    package manager) may be unknown to LaunchServices for a while (measured 05/11/2026:
+///    after `ditto` into /Applications only the DerivedData copies were known, and the
+///    menu item opened nothing). So the Applications folder is scanned for a bundle with
+///    the host's ID and the same version, like step 3.
+/// 5. LaunchServices knows exactly one copy: open it even though its Info.plist cannot
 ///    be read (a development build in the home folder). With one copy there is nothing to
 ///    pick wrong; opening goes through LaunchServices and needs no read access.
 ///
@@ -34,11 +39,13 @@ enum HostApp {
         case running
         case enclosing
         case sameVersion = "same-version"
+        case applicationsFolder = "applications-folder"
         case onlyKnown = "only-known"
     }
 
     /// The host app to open and why, or nil if none fits.
-    static func url(bundle: Bundle = .main, workspace: NSWorkspace = .shared) -> (url: URL, reason: Reason)? {
+    static func url(bundle: Bundle = .main, workspace: NSWorkspace = .shared,
+                    folders: [URL] = applicationFolders()) -> (url: URL, reason: Reason)? {
         guard let hostID = bundle.object(forInfoDictionaryKey: bundleIDInfoKey) as? String,
               !hostID.isEmpty, !hostID.contains("$(") else { return nil }
 
@@ -55,6 +62,9 @@ enum HostApp {
         let candidates = known.filter { Version(bundle: Bundle(url: $0)) == Version(bundle: bundle) }
         if let url = preferred(candidates) {
             return (url, .sameVersion)
+        }
+        if let url = scan(folders, hostID: hostID, version: Version(bundle: bundle)) {
+            return (url, .applicationsFolder)
         }
         if known.count == 1, let only = known.first {
             return (only, .onlyKnown)
@@ -87,6 +97,26 @@ enum HostApp {
             let opened = error == nil
             DispatchQueue.main.async { MainActor.assumeIsolated { completion?(opened) } }
         }
+    }
+
+    /// The local Applications folder (/Applications). The user domain is left out: in the
+    /// sandbox it resolves inside the container, and a home folder copy is not readable.
+    static func applicationFolders() -> [URL] {
+        FileManager.default.urls(for: .applicationDirectory, in: .localDomainMask)
+    }
+
+    /// First `.app` directly in one of `folders` whose bundle ID is `hostID` and whose
+    /// version is `version` (not recursive: only where an install puts the app).
+    static func scan(_ folders: [URL], hostID: String, version: Version) -> URL? {
+        for folder in folders {
+            let items = (try? FileManager.default.contentsOfDirectory(
+                at: folder, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])) ?? []
+            for url in items.sorted(by: { $0.path < $1.path }) where url.pathExtension == "app" {
+                guard let app = Bundle(url: url), app.bundleIdentifier == hostID else { continue }
+                if Version(bundle: app) == version { return url }
+            }
+        }
+        return nil
     }
 
     /// `X.app` for `X.app/Contents/Library/Input Methods/<bundle>`, else nil.

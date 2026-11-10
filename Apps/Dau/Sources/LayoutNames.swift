@@ -1,10 +1,11 @@
 import Foundation
 
 /// Names of keyboard layouts as the macOS menu bar shows them ("U.S." on an English
-/// system), for every place Dấu names a layout to the user (uninstall "Đã chuyển sang …",
-/// the shortcut lines). `kTISPropertyLocalizedName` cannot be used: it follows the
-/// language of this process, which is pinned to Vietnamese (main.swift) and so gives
-/// "Mỹ" for the U.S. layout on an English system.
+/// system), for every place Dấu names a layout to the user (the shortcut lines, the
+/// uninstall messages). `kTISPropertyLocalizedName` cannot be used: it follows the
+/// language of this process, which can differ from the system's (a language chosen for
+/// Dấu alone, or a `-AppleLanguages` argument, D41) and then gives "Mỹ" for the U.S.
+/// layout on an English system (D38).
 ///
 /// The names live in the layout bundle's `InfoPlist.loctable` (language → name key →
 /// name), keyed by the layout's ID without "com.apple.keylayout." ("US"). The language is
@@ -48,8 +49,8 @@ struct LayoutNames: Sendable {
     static let layoutBundleTable = URL(fileURLWithPath:
         "/System/Library/Keyboard Layouts/AppleKeyboardLayouts.bundle/Contents/Resources/InfoPlist.loctable")
 
-    /// The system's language list: the global domain, not this process's argument domain
-    /// (which pins "vi").
+    /// The system's language list: the global domain, not this process's (whose argument
+    /// or app domain can hold a language of its own, D41).
     static func systemLanguages() -> [String] {
         CFPreferencesCopyValue("AppleLanguages" as CFString, kCFPreferencesAnyApplication,
                                kCFPreferencesCurrentUser, kCFPreferencesAnyHost) as? [String] ?? []
@@ -69,7 +70,7 @@ struct LayoutNames: Sendable {
     }
 
     /// Read once: the table does not change while the app runs.
-    nonisolated(unsafe) private static let loadedTable = loadTable()
+    private static let loadedTable = loadTable()
 
     /// On the real system. The language list is read at each call (the user may change it).
     static func system() -> LayoutNames {

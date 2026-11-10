@@ -10,12 +10,15 @@ enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
 
     var id: String { rawValue }
 
-    var title: String {
+    var title: String { String(localized: titleResource) }
+
+    /// The title as a catalog entry: the sidebar row and the page title.
+    var titleResource: LocalizedStringResource {
         switch self {
-        case .typing: String(localized: "Gõ phím")
-        case .smart: String(localized: "Thông minh")
-        case .apps: String(localized: "Ứng dụng")
-        case .updates: String(localized: "Cập nhật & hỗ trợ")
+        case .typing: "Typing"
+        case .smart: "Smart Typing"
+        case .apps: "Apps"
+        case .updates: "Updates & Support"
         }
     }
 
@@ -28,47 +31,48 @@ enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
         }
     }
 
-    /// Words the sidebar search matches, besides the title: the visible row titles,
-    /// section headers, choices and buttons of the section ("gạch chân" in any case
-    /// matches "Gạch chân": the match ignores case and diacritics).
-    var keywords: [String] {
+    /// Words the sidebar search matches, besides the title, as catalog entries: the
+    /// visible row titles, section headers, choices and buttons of the section, so the
+    /// search finds the words in the language the window shows them.
+    var keywordResources: [LocalizedStringResource] {
         switch self {
         case .typing:
-            [String(localized: "Xem trước"), String(localized: "Kiểu gõ"), "Telex", "VNI",
-             String(localized: "Telex đơn giản"), String(localized: "Vị trí dấu thanh"),
-             String(localized: "Kiểu mới"), String(localized: "Kiểu cũ"),
-             String(localized: "Bỏ dấu tự do"), String(localized: "Phím tắt chuyển nguồn đầu vào"),
-             String(localized: "Chuyển tiếng Việt ↔ tiếng Anh")]
+            ["Preview", "Typing method", "Telex", "VNI", "Simple Telex", "Tone mark placement",
+             "Modern", "Classic", "Free mark placement", "Input source shortcut",
+             "Switch Vietnamese ↔ English"]
         case .smart:
-            [String(localized: "Gõ lẫn từ nước ngoài"),
-             String(localized: "Tự khôi phục từ không phải tiếng Việt"),
-             String(localized: "Sửa từ đã gõ"), String(localized: "Thêm dấu cho từ đã gõ"),
-             String(localized: "Nâng cao"), String(localized: "Gõ tắt phụ âm"),
-             String(localized: "Cho phép phụ âm z, f, w, j")]
+            ["Foreign words", "Restore non-Vietnamese words", "Editing typed words",
+             "Add marks to typed words", "Advanced", "Consonant shortcuts",
+             "Allow consonants z, f, w, j"]
         case .apps:
-            [String(localized: "Nguồn đầu vào theo cửa sổ"),
-             String(localized: "Nhớ nguồn đầu vào theo từng cửa sổ"),
-             SystemUINames.system().automaticallySwitchOption,
-             String(localized: "Quy tắc riêng"), String(localized: "Thêm ứng dụng"),
-             String(localized: "Gạch chân"), String(localized: "Có gạch chân"),
-             String(localized: "Không gạch chân"), String(localized: "Đề xuất"),
-             String(localized: "Bật gạch chân")]
+            ["Input source per window", "Remember the input source for each window",
+             "App rules", "Add App", "Underline", "No Underline", "Suggested", "Turn On Underline"]
         case .updates:
-            [String(localized: "Phiên bản"), String(localized: "Kiểm tra ngay"),
-             String(localized: "Tự động kiểm tra bản mới"), String(localized: "Tự động tải và cài"),
-             String(localized: "Kênh phát hành"), String(localized: "Ổn định"),
-             String(localized: "Beta"), String(localized: "Gặp ứng dụng gõ bị lỗi?"),
-             String(localized: "Báo lỗi…"), String(localized: "Quay về bản trước"),
-             String(localized: "Gỡ Dấu khỏi máy"), String(localized: "Gỡ cài đặt…"),
-             String(localized: "Quyền riêng tư")]
+            ["Version", "Check Now", "Language", "Automatically check for updates",
+             "Automatically download and install", "Release channel", "Stable", "Beta",
+             "Problems typing in an app?", "Report a Problem…", "Go back to the previous version",
+             "Remove Dấu from this Mac", "Uninstall…", "Privacy"]
         }
     }
 
-    /// Case- and diacritic-insensitive match, so "go phim" finds "Gõ phím".
+    /// Words of the section that are macOS's own (D38), in the system's language.
+    var systemKeywords: [String] {
+        self == .apps ? [SystemUINames.system().automaticallySwitchOption] : []
+    }
+
+    /// Case- and diacritic-insensitive match on the words as shown ("go phim" finds
+    /// "Gõ phím" in Vietnamese, "typing" finds "Typing" in English).
     func matches(_ query: String) -> Bool {
+        matches(query) { String(localized: $0) }
+    }
+
+    /// `localize` turns a catalog entry into the shown words: `String(localized:)` in the
+    /// app; tests pass one that reads a chosen language of the catalog.
+    func matches(_ query: String, localize: (LocalizedStringResource) -> String) -> Bool {
         let query = query.trimmingCharacters(in: .whitespaces)
         guard !query.isEmpty else { return true }
-        return ([title] + keywords).contains { $0.searchContains(query) }
+        let words = ([titleResource] + keywordResources).map(localize) + systemKeywords
+        return words.contains { $0.searchContains(query) }
     }
 }
 

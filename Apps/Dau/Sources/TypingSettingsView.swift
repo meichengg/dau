@@ -9,15 +9,15 @@ struct TypingSettingsView: View {
 
     var body: some View {
         @Bindable var model = model
-        SettingsPage(SettingsSection.typing.title) {
+        SettingsPage {
             Section {
                 PreviewCard(settings: model.settings)
             }
 
-            Section(header: Text("Kiểu gõ")) {
+            Section(header: Text("Typing method")) {
                 // No row label: the section title names it (mockup). System Settings
                 // spans such a segmented control across the row (Sound, Output/Input).
-                Picker("Kiểu gõ", selection: $model.settings.typingMethod) {
+                Picker("Typing method", selection: $model.settings.typingMethod) {
                     ForEach(DauSettings.TypingMethod.allCases, id: \.self) { method in
                         Text(verbatim: method.title).tag(method)
                     }
@@ -31,27 +31,27 @@ struct TypingSettingsView: View {
                         Text(verbatim: placement.title).tag(placement)
                     }
                 } label: {
-                    Text("Vị trí dấu thanh")
-                    Text("Kiểu mới: hoà, thuý · Kiểu cũ: hòa, thúy")
+                    Text("Tone mark placement")
+                    Text("Modern: hoà, thuý · Classic: hòa, thúy")
                 }
                 .pickerStyle(.segmented)
                 Toggle(isOn: $model.settings.freeMarking) {
-                    Text("Bỏ dấu tự do")
-                    Text("Gõ phím dấu ở bất kỳ đâu sau nguyên âm")
+                    Text("Free mark placement")
+                    Text("Type mark keys anywhere after the vowel")
                 }
             }
 
-            Section(header: Text("Chuyển tiếng Việt ↔ tiếng Anh")) {
+            Section(header: Text("Switch Vietnamese ↔ English")) {
                 LabeledContent {
                     HStack(spacing: 8) {
                         ShortcutKeycaps(shortcut: shortcut)
-                        Button("Đổi…") { SystemSettings.openKeyboard() }
+                        Button("Change…") { SystemSettings.openKeyboard() }
                             .layoutProbe("button")
-                            .accessibilityHint(Text("Mở \(SystemUINames.system().systemSettings)"))
+                            .accessibilityHint(Text("Open \(SystemUINames.system().systemSettings)"))
                     }
                 } label: {
-                    Text("Phím tắt chuyển nguồn đầu vào")
-                    Text("Dùng chung phím tắt của macOS, đổi trong \(SystemUINames.system().keyboardPath)")
+                    Text("Input source shortcut")
+                    Text("Uses the macOS shortcut; change it in \(SystemUINames.system().keyboardPath)")
                 }
             }
         }
@@ -80,7 +80,7 @@ struct PreviewCard: View {
         let example = SettingsSamples.preview(settings)
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
-                Text("Xem trước")
+                Text("Preview")
                     .fontWeight(.semibold)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityAddTraits(.isHeader)
@@ -106,7 +106,7 @@ struct PreviewCard: View {
                 }
             }
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text("\(example.keys) thành \(example.result)"))
+            .accessibilityLabel(Text("\(example.keys) becomes \(example.result)"))
         }
         .layoutProbe("firstRow")
     }
@@ -131,34 +131,53 @@ struct PreviewBox<Content: View>: View {
 }
 
 /// The input-source shortcut as keycaps, or the placeholder when it cannot be read.
+/// `inSentence`: drawn inside running text (onboarding, `ShortcutSentence`), so "hoặc"
+/// takes the sentence's font and color instead of the Settings row's value style.
 struct ShortcutKeycaps: View {
     let shortcut: InputSourceShortcut?
+    var size: Keycap.Size = .regular
+    var inSentence = false
 
     var body: some View {
         if let shortcut, !shortcut.isEmpty {
-            HStack(spacing: 4) {
+            HStack(spacing: size.spacing) {
                 ForEach(Array(shortcut.keys.enumerated()), id: \.offset) { _, key in
-                    Keycap(key)
+                    cap(key)
                 }
                 if shortcut.globeKey {
                     if !shortcut.keys.isEmpty {
-                        // System Settings' value text: 13 pt, secondary.
-                        Text("hoặc")
-                            .foregroundStyle(.secondary)
-                            .padding(.horizontal, 2)
+                        if inSentence {
+                            Text("or")
+                                .padding(.horizontal, 1)
+                        } else {
+                            // System Settings' value text: 13 pt, secondary.
+                            Text("or")
+                                .foregroundStyle(.secondary)
+                                .padding(.horizontal, 2)
+                        }
                     }
-                    Keycap("🌐")
+                    cap("🌐")
                 }
             }
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text("Phím tắt hiện tại"))
+            .accessibilityLabel(Text("Current shortcut"))
             .accessibilityAddTraits(.isStaticText)
             .accessibilityValue(Text(verbatim: spokenValue(shortcut)))
         } else {
             // Not readable: keep the placeholder rather than guess (N5).
             // System Settings' value text: 13 pt, secondary.
-            Text("[Phím tắt hệ thống]")
+            Text("[System shortcut]")
                 .foregroundStyle(.secondary)
+        }
+    }
+
+    /// In a sentence the caps keep the primary color, also inside a secondary hint
+    /// (artboard OnboardingNotSelected).
+    @ViewBuilder private func cap(_ key: String) -> some View {
+        if inSentence {
+            Keycap(key, size: size).foregroundStyle(.primary)
+        } else {
+            Keycap(key, size: size)
         }
     }
 
@@ -171,19 +190,35 @@ struct ShortcutKeycaps: View {
 
 /// A key cap: radius 6, height 24, 12 pt text; system fill and separator. Mockup
 /// content (System Settings shows shortcuts as text, not keycaps): kept as drawn in
-/// the mockup, see the header of Components.swift.
+/// the mockup, see the header of Components.swift. `.small` is the artboards' keycap
+/// inside a 12 pt hint (OnboardingNotSelected): radius 4, height 18, 11 pt text.
 struct Keycap: View {
+    enum Size {
+        case regular, small
+
+        var height: CGFloat { self == .regular ? 24 : 18 }
+        var fontSize: CGFloat { self == .regular ? 12 : 11 }
+        var padding: CGFloat { self == .regular ? 6 : 4 }
+        var radius: CGFloat { self == .regular ? 6 : 4 }
+        /// Between the caps of one shortcut.
+        var spacing: CGFloat { self == .regular ? 4 : 3 }
+    }
+
     let key: String
-    init(_ key: String) { self.key = key }
+    var size: Size = .regular
+    init(_ key: String, size: Size = .regular) {
+        self.key = key
+        self.size = size
+    }
 
     var body: some View {
         Text(verbatim: key)
-            .font(.system(size: 12))
-            .padding(.horizontal, 6)
-            .frame(minWidth: 24, minHeight: 24, maxHeight: 24)
-            .background(.fill, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .font(.system(size: size.fontSize))
+            .padding(.horizontal, size.padding)
+            .frame(minWidth: size.height, minHeight: size.height, maxHeight: size.height)
+            .background(.fill, in: RoundedRectangle(cornerRadius: size.radius, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                RoundedRectangle(cornerRadius: size.radius, style: .continuous)
                     .strokeBorder(.separator, lineWidth: 1)
             }
     }
@@ -194,7 +229,7 @@ extension DauSettings.TypingMethod {
         switch self {
         case .telex: String(localized: "Telex")
         case .vni: String(localized: "VNI")
-        case .simpleTelex: String(localized: "Telex đơn giản")
+        case .simpleTelex: String(localized: "Simple Telex")
         }
     }
 }
@@ -202,8 +237,8 @@ extension DauSettings.TypingMethod {
 extension DauSettings.TonePlacement {
     var title: String {
         switch self {
-        case .modern: String(localized: "Kiểu mới")
-        case .classic: String(localized: "Kiểu cũ")
+        case .modern: String(localized: "Modern")
+        case .classic: String(localized: "Classic")
         }
     }
 }

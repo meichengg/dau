@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Nhận diện – nơi hình đại diện xuất hiện</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.sw{appearance:none;-webkit-appearance:none;width:40px;height:24px;border-radius:12px;background:#c7c7cc;margin:0;position:relative;flex:none;cursor:default}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:10px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sw:checked{background:var(--acc)}
+.sw:checked::after{left:18px}
+.pop{all:unset;box-sizing:border-box;height:26px;padding:0 10px 0 12px;border-radius:999px;background:#fff;border:1px solid rgba(0,0,0,.12);box-shadow:0 1px 1px rgba(0,0,0,.06);font-size:13px;display:inline-flex;align-items:center;gap:6px;color:#1d1d1f;cursor:default;white-space:nowrap}
+.btn{all:unset;box-sizing:border-box;height:30px;padding:0 16px;border-radius:999px;font-size:13px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;background:rgba(0,0,0,.06);color:#1d1d1f;cursor:default;white-space:nowrap;text-decoration:none}
+.btn.pri{background:var(--acc);color:#fff}
+.btn.danger{color:#b42318}
+.seg{display:flex;padding:2px;border-radius:999px;background:rgba(0,0,0,.07);gap:2px}
+.sg{all:unset;box-sizing:border-box;flex:1;height:26px;padding:0 14px;border-radius:999px;font-size:13px;display:flex;align-items:center;justify-content:center;color:#1d1d1f;cursor:default;white-space:nowrap}
+.sg.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15);font-weight:600}
+.card{background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06)}
+.row{display:flex;align-items:center;gap:12px;min-height:48px;padding:10px 16px;box-sizing:border-box;font-size:13px;color:#1d1d1f}
+.sep{height:1px;background:rgba(0,0,0,.07);margin-left:16px}
+.hint{font-size:12px;color:#6e6e73;line-height:1.4}
+.sec{font-size:13px;font-weight:600;color:#1d1d1f;padding:0 4px}
+.side{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:9px;height:32px;padding:0 8px;border-radius:9px;font-size:13px;color:#1d1d1f;cursor:default;text-decoration:none}
+.side.on{background:var(--acc);color:#fff;font-weight:500}
+.tile{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex:none}
+.kc{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 6px;box-sizing:border-box;border-radius:6px;background:#fff;border:1px solid rgba(0,0,0,.14);box-shadow:0 1px 0 rgba(0,0,0,.12);font-size:12px;color:#1d1d1f}
+.chip{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;font-size:12px;background:rgba(0,0,0,.06);color:#3a3a3c}
+.mi{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:6px;width:100%;height:26px;padding:0 10px;border-radius:7px;font-size:13px;color:#1d1d1f;cursor:default}
+.mi.on{background:var(--acc);color:#fff}
+.mk{width:14px;flex:none;display:inline-flex}
+.k{margin-left:auto;color:#6e6e73;font-size:12px}
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
+
+</style>
+</helmet>
+<div style="width: 1200px; height: 624px; box-sizing: border-box; padding: 40px 48px; background: #FBFAF7; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; display: flex; flex-direction: column; gap: 28px; --acc: {{accent}}"><div style="display: flex; flex-direction: column; gap: 6px"><h1 style="margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: #1D1D1F; font-family: 'Be Vietnam Pro', -apple-system, 'Helvetica Neue', sans-serif">Hình đại diện xuất hiện ở đâu</h1><p style="margin: 0; font-size: 14px; line-height: 1.5; color: #4a4a4f; max-width: 820px">Mỗi nơi cần một định dạng riêng. Danh sách file cần xuất nằm trong docs/BRAND.md.</p></div><div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px">
+<section style="display: flex; flex-direction: column; gap: 12px"><h2 style="margin: 0; font-size: 15px; font-weight: 700; color: #1D1D1F; font-family: 'Be Vietnam Pro', -apple-system, 'Helvetica Neue', sans-serif">Kết quả tìm kiếm</h2><div class="card" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 6px; font-family: Arial, sans-serif">
+<div style="display: flex; align-items: center; gap: 10px"><span style="width: 28px; height: 28px; border-radius: 50%; background: #f1f3f4; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 100 100" aria-hidden="true"><rect x="0" y="0" width="100" height="100" rx="22.4" fill="#10285A"></rect><text x="48" y="80" text-anchor="middle" font-family="'Be Vietnam Pro', -apple-system, 'Helvetica Neue', sans-serif" font-weight="700" font-size="64" fill="#F6F1E7">a</text><path d="M34 35 L47 25 L60 35" fill="none" stroke="#F6F1E7" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path><path d="M63 24 L73 13" fill="none" stroke="#E0533D" stroke-width="7.5" stroke-linecap="round"></path></svg></span><span style="display: flex; flex-direction: column"><span style="font-size: 14px; color: #202124">Dấu</span><span style="font-size: 12px; color: #4d5156">dau.codefastlabs.com</span></span></div>
+<span style="font-size: 20px; color: #1a0dab">Dấu – Bộ gõ tiếng Việt cho macOS</span><span style="font-size: 14px; line-height: 1.5; color: #4d5156">Bộ gõ tiếng Việt mã nguồn mở cho macOS, dựng trên nền tảng nhập liệu chính thức của Apple. Telex, VNI, tự động cập nhật.</span></div>
+<span class="hint">Favicon lấy từ biểu tượng (16, 32, 180 px). Tiêu đề và mô tả từ thẻ title / meta description; không đưa lời hứa chưa kiểm chứng vào đây (N5).</span></section>
+<section style="display: flex; flex-direction: column; gap: 12px"><h2 style="margin: 0; font-size: 15px; font-weight: 700; color: #1D1D1F; font-family: 'Be Vietnam Pro', -apple-system, 'Helvetica Neue', sans-serif">Link chia sẻ trong tin nhắn</h2><div style="align-self: flex-start; max-width: 360px; border-radius: 18px; overflow: hidden; background: #e9e9eb">
+<div style="padding: 10px 14px; font-size: 14px; color: #1d1d1f">Thử bộ gõ này xem</div>
+<div style="background: #10285A; height: 188px; display: flex; flex-direction: column; justify-content: space-between; padding: 22px 26px; box-sizing: border-box; font-family: 'Be Vietnam Pro', -apple-system, 'Helvetica Neue', sans-serif"><div style="display: flex; align-items: center; gap: 10px"><svg width="36" height="36" viewBox="0 0 100 100" aria-hidden="true"><rect x="0" y="0" width="100" height="100" rx="22.4" fill="#10285A"></rect><rect x="0.75" y="0.75" width="98.5" height="98.5" rx="21.7" fill="none" stroke="rgba(246,241,231,0.35)" stroke-width="1.5"></rect><text x="48" y="80" text-anchor="middle" font-family="'Be Vietnam Pro', -apple-system, 'Helvetica Neue', sans-serif" font-weight="700" font-size="64" fill="#F6F1E7">a</text><path d="M34 35 L47 25 L60 35" fill="none" stroke="#F6F1E7" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path><path d="M63 24 L73 13" fill="none" stroke="#E0533D" stroke-width="7.5" stroke-linecap="round"></path></svg><span style="font-weight: 800; font-size: 28px; color: #F6F1E7">Dấu</span></div><span style="font-weight: 700; font-size: 18px; color: #F6F1E7">Bộ gõ tiếng Việt cho macOS</span></div>
+<div style="padding: 10px 14px; display: flex; flex-direction: column; gap: 2px; background: #f2f2f4"><span style="font-size: 13px; font-weight: 600; color: #1d1d1f">Dấu – Bộ gõ tiếng Việt cho macOS</span><span style="font-size: 12px; color: #6e6e73">dau.codefastlabs.com</span></div></div>
+<span class="hint">Ảnh Open Graph 1200×630 hiện khi dán link vào Zalo, Messenger, Slack, iMessage, X.</span></section></div>
+<section style="display: flex; flex-direction: column; gap: 12px"><h2 style="margin: 0; font-size: 15px; font-weight: 700; color: #1D1D1F; font-family: 'Be Vietnam Pro', -apple-system, 'Helvetica Neue', sans-serif">Tab trình duyệt và Dock</h2><div style="display: flex; align-items: center; gap: 28px"><div style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 10px 10px 0 0; background: #fff; border: 1px solid rgba(0,0,0,0.1); font-size: 13px; color: #1d1d1f"><svg width="16" height="16" viewBox="0 0 100 100" aria-hidden="true"><rect x="0" y="0" width="100" height="100" rx="22.4" fill="#10285A"></rect><text x="48" y="80" text-anchor="middle" font-family="'Be Vietnam Pro', -apple-system, 'Helvetica Neue', sans-serif" font-weight="700" font-size="64" fill="#F6F1E7">a</text><path d="M34 35 L47 25 L60 35" fill="none" stroke="#F6F1E7" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path><path d="M63 24 L73 13" fill="none" stroke="#E0533D" stroke-width="7.5" stroke-linecap="round"></path></svg>Dấu – Bộ gõ tiếng Việt…</div><div style="display: flex; align-items: flex-end; gap: 10px; padding: 8px 12px; border-radius: 18px; background: rgba(0,0,0,0.08)"><svg width="48" height="48" viewBox="0 0 100 100" aria-hidden="true"><rect x="0" y="0" width="100" height="100" rx="22.4" fill="#10285A"></rect><text x="48" y="80" text-anchor="middle" font-family="'Be Vietnam Pro', -apple-system, 'Helvetica Neue', sans-serif" font-weight="700" font-size="64" fill="#F6F1E7">a</text><path d="M34 35 L47 25 L60 35" fill="none" stroke="#F6F1E7" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path><path d="M63 24 L73 13" fill="none" stroke="#E0533D" stroke-width="7.5" stroke-linecap="round"></path></svg><span style="width: 48px; height: 48px; border-radius: 11px; background: #c7c7cc"></span><span style="width: 48px; height: 48px; border-radius: 11px; background: #c7c7cc"></span></div></div></section></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0A64D8","options":["#0A64D8","#7A3FD1","#C2410C","#1F7A4D"]},"$preview":{"width":1200,"height":624}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent ?? '#0A64D8' };
+}
+}
+</script>
+</body>
+</html>

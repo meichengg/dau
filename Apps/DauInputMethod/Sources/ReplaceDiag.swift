@@ -16,6 +16,9 @@ struct ReplaceDiag {
     var selection: NSRange
     /// Where the tracker expected the cursor (nil: unknown, first replacement of a word).
     var expected: Int?
+    /// Where the tracker followed the cursor to across words (nil: unknown); differs from
+    /// `selection` when the app answered late (kind `late`).
+    var known: Int?
     /// UTF-16 length of the text inserted.
     var insertedLength: Int
     /// The `replacementRange` sent, or nil when nothing was sent (mismatch, unsupported).
@@ -25,6 +28,7 @@ struct ReplaceDiag {
         deleteCount = attempt.deleteCount
         selection = attempt.selection
         expected = attempt.expected
+        known = attempt.known
         insertedLength = attempt.insertedLength
         replacement = attempt.replacement
     }
@@ -36,7 +40,7 @@ struct ReplaceDiag {
         let expectedAfter = diag.replacement.map { $0.location + diag.insertedLength } ?? -1
         logger.notice("""
             replace kind=\(kind.rawValue, privacy: .public) del=\(diag.deleteCount, privacy: .public) \
-            sel=\(format(diag.selection), privacy: .public) expected=\(diag.expected ?? -1, privacy: .public) \
+            sel=\(format(diag.selection), privacy: .public) expected=\(diag.expected ?? -1, privacy: .public) known=\(diag.known ?? -1, privacy: .public) \
             rep=\(diag.replacement.map(format) ?? "-", privacy: .public) ins_len=\(diag.insertedLength, privacy: .public) \
             after=\(format(after), privacy: .public) after_expected=\(expectedAfter, privacy: .public) \
             app=\(app, privacy: .public)

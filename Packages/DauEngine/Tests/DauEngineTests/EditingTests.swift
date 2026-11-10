@@ -20,6 +20,28 @@ struct EditingTests {
     ])
     func doubleLockSurvivesBackspace(_ c: Case) { expectTyped(c.keys, c.expected) }
 
+    /// D33: deleting the whole overflowed word ends the pass-through state (like D26's lock).
+    @Test(arguments: [
+        Case("permission⌫⌫⌫⌫⌫⌫⌫⌫⌫⌫vieetj", "việt"),
+        Case("permission⌫⌫⌫⌫⌫⌫⌫⌫⌫⌫vieetj ", "việt "),
+        Case("Permission⌫⌫⌫⌫⌫⌫⌫⌫⌫⌫Vieetj", "Việt"),
+        Case("permission⌫⌫⌫⌫⌫⌫⌫⌫⌫⌫⌫vieetj", "việt"),   // extra ⌫ on an empty field
+        Case("permissionsx⌫⌫⌫⌫⌫⌫⌫⌫⌫⌫⌫⌫vieetj", "việt"),   // typed past the overflow key
+    ])
+    func overflowEndsWhenEmptied(_ c: Case) { expectTyped(c.keys, c.expected) }
+
+    @Test func overflowEndsWhenEmptiedVNI() {
+        expectTyped("permission⌫⌫⌫⌫⌫⌫⌫⌫⌫⌫vie6t5", "việt", vni)
+    }
+
+    /// D33: partial deletion keeps the pass-through state.
+    @Test(arguments: [
+        Case("permission⌫vieetj", "permissiovieetj"),
+        Case("permission⌫⌫⌫⌫⌫⌫⌫⌫⌫vieetj", "pvieetj"),
+        Case("permissionsx⌫⌫vieetj", "permissionvieetj"),
+    ])
+    func overflowKeptWhenPartlyDeleted(_ c: Case) { expectTyped(c.keys, c.expected) }
+
     /// D30: the spelling lock is recomputed from what is left after Backspace.
     @Test(arguments: [
         Case("Hask", "Hák"), Case("Hask⌫n", "Hán"), Case("Hask⌫nf", "Hàn"),

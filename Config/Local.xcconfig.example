@@ -1,0 +1,4 @@
+// Copy to Config/Local.xcconfig (git-ignored) to build and sign with your own team.
+// Your Team ID: Xcode > Settings > Accounts, or the "OU=" field of your
+// "Apple Development" certificate in Keychain Access. Run `xcodegen generate` afterwards.
+DEVELOPMENT_TEAM = YOURTEAMID

@@ -48,19 +48,17 @@ struct HeaderAdd {
 /// 20 pt margins, cards, section headers, row heights, separators, and it scrolls
 /// under the toolbar with the system's scroll edge.
 ///
-/// The title is a leading toolbar item (`PageTitle`, see `SettingsWindow`). `search`
-/// and `add`: the Apps page's header controls, as toolbar items: the system search
-/// field (`searchable`) and a "+" button.
+/// The title is the system's navigation title (`SettingsDetail`). `search` and `add`:
+/// the Apps page's header controls, as toolbar items: the system search field
+/// (`searchable`) and a "+" button.
 struct SettingsPage<Content: View>: View {
-    let title: String
     var search: Binding<String>?
     var searchPrompt: Text?
     var add: HeaderAdd?
     @ViewBuilder var content: Content
 
-    init(_ title: String, search: Binding<String>? = nil, searchPrompt: Text? = nil,
+    init(search: Binding<String>? = nil, searchPrompt: Text? = nil,
          add: HeaderAdd? = nil, @ViewBuilder content: () -> Content) {
-        self.title = title
         self.search = search
         self.searchPrompt = searchPrompt
         self.add = add
@@ -77,14 +75,6 @@ struct SettingsPage<Content: View>: View {
         // Content scrolled under the toolbar must not show through the title (UI-CHECKS
         // item 9): the system's hard scroll edge on macOS 26+.
         .modifier(HardTopScrollEdge())
-        .toolbar {
-            if #available(macOS 26, *) {
-                ToolbarItem(placement: .navigation) { PageTitle(title: title) }
-                    .sharedBackgroundVisibility(.hidden)
-            } else {
-                ToolbarItem(placement: .navigation) { PageTitle(title: title) }
-            }
-        }
         .modifier(PageSearch(text: search, prompt: searchPrompt, add: add))
     }
 }
@@ -102,40 +92,11 @@ struct HardTopScrollEdge: ViewModifier {
     }
 }
 
-/// The page title in the toolbar, as System Settings draws it: 15 pt bold, primary,
-/// starting 20 pt from the sidebar (the detail column's margin, where the system's
-/// own navigation title sits; measured 252.5 with the 232 pt sidebar).
-///
-/// Why not the system's navigation title: System Settings has no sidebar toggle, so
-/// the window removes it (`.toolbar(removing: .sidebarToggle)`, `SettingsWindow`).
-/// Without the toggle the toolbar holds no item on most pages and the system title
-/// shrinks: AppKit collapses the toolbar to a 32 pt title bar with the small window
-/// title (measured on macOS 27.2, 1x display). This item keeps the toolbar at System
-/// Settings' 52 pt with its 15 pt bold title on every page; `HiddenWindowTitle` and
-/// `RemoveToolbarTitle` keep the system title from being drawn a second time.
-struct PageTitle: View {
-    let title: String
-
-    var body: some View {
-        Text(verbatim: title)
-            .font(.system(size: 15, weight: .bold))
-            .foregroundStyle(.primary)
-            .fixedSize()
-            .accessibilityAddTraits(.isHeader)
-            .layoutProbe("title")
-            // The toolbar item starts 4 pt right of the sidebar.
-            .padding(.leading, 16)
-            // A fixed item width: with the text's own width the toolbar placed the
-            // title half a point apart on some pages (measured 251.5 vs 252).
-            .frame(width: 200, alignment: .leading)
-    }
-}
-
 /// The page's toolbar search field and "+" (Apps), on the trailing side of the
-/// toolbar. The system puts the search field of `searchable` last, after the "+"
-/// (macOS 27.2: a `DefaultToolbarItem(kind: .search)` placed before the "+" does not
-/// move it); the mockup header has them the other way round, the system order wins
-/// (D9).
+/// toolbar, after the Back/Forward cluster and the title. The system puts the search
+/// field of `searchable` last, after the "+" (macOS 27.2: a
+/// `DefaultToolbarItem(kind: .search)` placed before the "+" does not move it), the
+/// order of the "SettingsApps" artboard.
 private struct PageSearch: ViewModifier {
     let text: Binding<String>?
     let prompt: Text?
@@ -285,7 +246,7 @@ struct Chip: View {
 /// "Mới" badge: accent fill with the system's text-on-accent color.
 struct NewBadge: View {
     var body: some View {
-        Text("Mới")
+        Text("New")
             .font(.system(size: 11, weight: .semibold))
             .foregroundStyle(Color(nsColor: .alternateSelectedControlTextColor))
             .padding(.horizontal, 7)
@@ -308,7 +269,7 @@ struct ExampleChips: View {
             Chip(Text(verbatim: example.result), emphasized: true)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("\(keysText) thành \(example.result)"))
+        .accessibilityLabel(Text("\(keysText) becomes \(example.result)"))
     }
 
     private var keysText: String {
@@ -369,6 +330,9 @@ struct NotEnabledBanner: View {
     @Environment(InputSourceStatus.self) private var status
     @Environment(\.inputMethodActions) private var actions
     @Environment(\.openWindow) private var openWindow
+    /// The Settings scene's `openWindow`: the pages live in a hosting controller of the
+    /// window's split view (`SettingsEnvironment`).
+    @Environment(\.settingsOpenWindow) private var settingsOpenWindow
 
     var body: some View {
         let ui = SystemUINames.system()   // macOS's own names (D38)
@@ -376,29 +340,29 @@ struct NotEnabledBanner: View {
         switch state {
         case .enabled:
             noticeBanner(probe: "banner.enabled", leading: tile(.green, symbol: "checkmark"),
-                         title: Text("Đã bật Dấu"), hint: enabledHint) {
-                Button("Ẩn") { actions?.dismissBanner() }
+                         title: Text("Dấu Is On"), hint: enabledHint) {
+                Button("Hide") { actions?.dismissBanner() }
             }
         case .working:
             noticeBanner(probe: "banner.working", leading: ProgressView().controlSize(.small).frame(width: 28, height: 28).accessibilityHidden(true),
-                         title: Text("Đang chờ bạn bấm \(ui.allow)"),
-                         hint: Text("Hộp thoại nằm trong cửa sổ \(ui.systemSettings). Bấm \(ui.allow) để bật Dấu.")) {
-                Button("Thử lại") { enable() }
+                         title: Text("Waiting for you to click \(ui.allow)"),
+                         hint: Text("The dialog is in the \(ui.systemSettings) window. Click \(ui.allow) to turn on Dấu.")) {
+                Button("Try Again") { enable() }
             }
             .accessibilityAddTraits(.updatesFrequently)
         case .notEnabled, .failed:
             noticeBanner(probe: "banner.notEnabled", leading: tile(.orange, symbol: "exclamationmark.triangle.fill"),
-                         title: Text("Chưa bật được Dấu"),
-                         hint: Text("Bấm Thử lại rồi \(ui.allow), hoặc tự thêm: \(ui.inputSourcesPath) › \(ui.edit) › + › \(ui.vietnamese) › Dấu.")) {
-                Button("Thử lại") { enable() }
+                         title: Text("Couldn’t Turn On Dấu"),
+                         hint: Text("Click Try Again, then \(ui.allow), or add it yourself: \(ui.inputSourcesPath) › \(ui.edit) › + › \(ui.vietnamese) › Dấu.")) {
+                Button("Try Again") { enable() }
             }
             .onChange(of: status.isEnabled) { _, isEnabled in actions?.inputSourcesChanged(isEnabled: isEnabled) }
         case .idle:
             if status.isEnabled == false {
                 noticeBanner(probe: "banner.idle", leading: tile(.orange, symbol: "exclamationmark.triangle.fill"),
-                             title: Text("Dấu chưa được bật trong nguồn đầu vào"),
-                             hint: Text("Bạn vẫn chỉnh được cài đặt, nhưng chưa gõ được tiếng Việt.")) {
-                    Button("Bật lại") { enable() }
+                             title: Text("Dấu isn’t turned on in your input sources"),
+                             hint: Text("You can still change settings, but you can’t type Vietnamese yet.")) {
+                    Button("Turn On Again") { enable() }
                         .buttonStyle(.borderedProminent)
                 }
             }
@@ -408,14 +372,14 @@ struct NotEnabledBanner: View {
     /// "Chọn Dấu trong menu nhập liệu, hoặc bấm ⌃Space để chuyển giữa Dấu và U.S.": the
     /// real shortcut (N5); without a readable one, only the first half.
     private var enabledHint: Text {
-        guard let actions else { return Text("Chọn Dấu trên menu nguồn đầu vào.") }
+        guard let actions else { return Text("Choose Dấu from the Input menu.") }
         switch (actions.shortcut.shortcut, actions.englishLayout) {
         case (let shortcut?, let layout?):
-            return Text("Chọn Dấu trên menu nguồn đầu vào, hoặc nhấn \(shortcut.inlineText) để chuyển giữa Dấu và “\(layout)”.")
+            return Text("Choose Dấu from the Input menu, or press \(shortcut.inlineText) to switch between Dấu and “\(layout)”.")
         case (let shortcut?, nil):
-            return Text("Chọn Dấu trên menu nguồn đầu vào, hoặc nhấn \(shortcut.inlineText) để chuyển giữa Dấu và bàn phím tiếng Anh.")
+            return Text("Choose Dấu from the Input menu, or press \(shortcut.inlineText) to switch between Dấu and an English keyboard.")
         default:
-            return Text("Chọn Dấu trên menu nguồn đầu vào.")
+            return Text("Choose Dấu from the Input menu.")
         }
     }
 
@@ -438,7 +402,7 @@ struct NotEnabledBanner: View {
         }
         Task {
             if await actions.enableFromBanner() {
-                openWindow(id: OnboardingScene.id)
+                (settingsOpenWindow ?? openWindow)(id: OnboardingScene.id)
             }
         }
     }
@@ -459,11 +423,11 @@ struct TamperedBanner: View {
                             .frame(width: 28, height: 28)
                             .background(Color.red, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
                             .accessibilityHidden(true),
-                         title: Text("Bộ gõ Dấu trên máy đã bị thay đổi"),
+                         title: Text("Dấu’s input method on this Mac has been changed"),
                          hint: actions.reinstall == .failed
-                            ? Text("Chưa cài lại được. Hãy gỡ cài đặt Dấu rồi cài lại từ bản tải về.")
-                            : Text("Tệp bộ gõ đã bị thay hoặc sửa sau khi cài. Cài lại để gõ bằng đúng bản của Dấu.")) {
-                Button("Cài lại") { Task { await actions.reinstallInputMethod() } }
+                            ? Text("Couldn’t reinstall. Uninstall Dấu, then install it again from a fresh download.")
+                            : Text("The input method was replaced or modified after it was installed. Reinstall to type with Dấu’s own copy.")) {
+                Button("Reinstall") { Task { await actions.reinstallInputMethod() } }
                     .buttonStyle(.borderedProminent)
                     .disabled(actions.reinstall == .working)
             }

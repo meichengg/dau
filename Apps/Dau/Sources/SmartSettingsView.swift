@@ -12,11 +12,11 @@ struct SmartSettingsView: View {
     var body: some View {
         @Bindable var model = model
         let method = model.settings.typingMethod
-        SettingsPage(SettingsSection.smart.title) {
-            Section(header: Text("Gõ lẫn từ nước ngoài")) {
+        SettingsPage {
+            Section(header: Text("Foreign words")) {
                 Toggle(isOn: $model.settings.autoRestore) {
-                    Text("Tự khôi phục từ không phải tiếng Việt")
-                    Text("Khi gõ xong một từ (Space, dấu câu, Enter), từ không phải tiếng Việt được giữ nguyên như bạn gõ")
+                    Text("Restore non-Vietnamese words")
+                    Text("When you finish a word (Space, punctuation, Return), a word that isn’t Vietnamese stays as you typed it")
                 }
                 .layoutProbe("firstRow")
                 VStack(alignment: .leading, spacing: 8) {
@@ -25,21 +25,21 @@ struct SmartSettingsView: View {
                     }
                     let wins = SettingsSamples.vietnameseWins(method)
                     let keep = SettingsSamples.keepOriginal(method)
-                    Subtitle(Text("Từ trùng với tiếng Việt thì tiếng Việt được ưu tiên: “\(wins.keys)” ra “\(wins.result)”. Muốn giữ chữ gốc, gõ đúp phím dấu: “\(keep.keys)” ra “\(keep.result)”."))
+                    Subtitle(Text("A word that is also Vietnamese stays Vietnamese: “\(wins.keys)” gives “\(wins.result)”. To keep the letters you typed, press the mark key twice: “\(keep.keys)” gives “\(keep.result)”."))
                 }
             }
 
-            Section(header: Text("Sửa từ đã gõ")) {
+            Section(header: Text("Editing typed words")) {
                 Toggle(isOn: $model.settings.addMarksToTypedWords) {
                     HStack(spacing: 6) {
-                        Text("Thêm dấu cho từ đã gõ")
+                        Text("Add marks to typed words")
                         NewBadge()
                     }
                     // D20 scope (30/10/2026): only the text right before the cursor,
                     // never in apps with a "Có gạch chân" rule. N5: stability on web
                     // editors is an open question in DECISIONS.md; the placeholder
                     // stays until it is measured.
-                    Text("Đặt con trỏ ngay sau từ rồi gõ phím dấu. Không áp dụng ở ứng dụng có quy tắc “Có gạch chân”. [Kết quả kiểm chứng trên Google Docs, Notion…]")
+                    Text("Put the cursor right after a word, then type a mark key. Not available in apps with an “Underline” rule. [Test results on Google Docs, Notion…]")
                 }
                 WrappingHStack {
                     ExampleChips(example: SettingsSamples.addMarks(method))
@@ -57,7 +57,7 @@ struct SmartSettingsView: View {
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundStyle(.secondary)
                             .rotationEffect(.degrees(advancedExpanded ? 90 : 0))
-                        Text("Nâng cao")
+                        Text("Advanced")
                             .foregroundStyle(.primary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                         Text(advancedSummary(model.settings.advanced))
@@ -66,9 +66,9 @@ struct SmartSettingsView: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(Text("Nâng cao"))
+                .accessibilityLabel(Text("Advanced"))
                 .accessibilityValue(Text(advancedSummary(model.settings.advanced)))
-                .accessibilityHint(advancedExpanded ? Text("Thu gọn") : Text("Mở rộng"))
+                .accessibilityHint(advancedExpanded ? Text("Collapse") : Text("Expand"))
 
                 if advancedExpanded {
                     AdvancedOptions(settings: $model.settings)
@@ -80,8 +80,8 @@ struct SmartSettingsView: View {
 
     private func advancedSummary(_ advanced: DauSettings.Advanced) -> String {
         advanced == .off
-            ? String(localized: "2 tuỳ chọn, đang tắt")
-            : String(localized: "2 tuỳ chọn, 1 đang bật")
+            ? String(localized: "2 options, both off")
+            : String(localized: "2 options, 1 on")
     }
 }
 
@@ -91,25 +91,25 @@ struct AdvancedOptions: View {
 
     var body: some View {
         Toggle(isOn: $settings.consonantShortcuts) {
-            Text("Gõ tắt phụ âm")
+            Text("Consonant shortcuts")
             Text(shortcutsHint)
         }
         Toggle(isOn: $settings.allowZFWJ) {
-            Text("Cho phép phụ âm z, f, w, j")
+            Text("Allow consonants z, f, w, j")
             Text(zfwjHint)
         }
     }
 
     private var shortcutsHint: String {
         // D21; w → qu exists only in VNI (D23). D22: say that this turns the other off.
-        String(localized: "Đầu từ: f → ph, j → gi (VNI thêm w → qu) · Cuối từ: g → ng, h → nh, k → ch. Áp dụng khi gõ xong từ, chỉ khi ra từ tiếng Việt hợp lệ. Bật mục này sẽ tắt Cho phép phụ âm z, f, w, j.")
+        String(localized: "Word start: f → ph, j → gi (VNI also w → qu) · Word end: g → ng, h → nh, k → ch. Applied when you finish a word, only if the result is a valid Vietnamese word. Turning this on turns off Allow consonants z, f, w, j.")
     }
 
     private var zfwjHint: String {
         // D22, D23: in Telex a leading w is always ư, noted only while Telex is used.
         settings.typingMethod == .telex
-            ? String(localized: "Dành cho từ mượn và tên riêng. Bật mục này sẽ tắt Gõ tắt phụ âm. Với Telex, w ở đầu từ luôn thành ư nên mục này chỉ có tác dụng với z, f, j.")
-            : String(localized: "Dành cho từ mượn và tên riêng. Bật mục này sẽ tắt Gõ tắt phụ âm.")
+            ? String(localized: "For loanwords and names. Turning this on turns off Consonant shortcuts. In Telex, w at the start of a word always becomes ư, so this only affects z, f, j.")
+            : String(localized: "For loanwords and names. Turning this on turns off Consonant shortcuts.")
     }
 }
 

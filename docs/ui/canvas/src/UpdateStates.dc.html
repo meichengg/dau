@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Trạng thái cập nhật</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
+body{margin:0}
+.sw{appearance:none;-webkit-appearance:none;width:40px;height:24px;border-radius:12px;background:#c7c7cc;margin:0;position:relative;flex:none;cursor:default}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:10px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sw:checked{background:var(--acc)}
+.sw:checked::after{left:18px}
+.pop{all:unset;box-sizing:border-box;height:26px;padding:0 10px 0 12px;border-radius:999px;background:#fff;border:1px solid rgba(0,0,0,.12);box-shadow:0 1px 1px rgba(0,0,0,.06);font-size:13px;display:inline-flex;align-items:center;gap:6px;color:#1d1d1f;cursor:default;white-space:nowrap}
+.btn{all:unset;box-sizing:border-box;height:30px;padding:0 16px;border-radius:999px;font-size:13px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;background:rgba(0,0,0,.06);color:#1d1d1f;cursor:default;white-space:nowrap;text-decoration:none}
+.btn.pri{background:var(--acc);color:#fff}
+.btn.danger{color:#b42318}
+.seg{display:flex;padding:2px;border-radius:999px;background:rgba(0,0,0,.07);gap:2px}
+.sg{all:unset;box-sizing:border-box;flex:1;height:26px;padding:0 14px;border-radius:999px;font-size:13px;display:flex;align-items:center;justify-content:center;color:#1d1d1f;cursor:default;white-space:nowrap}
+.sg.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15);font-weight:600}
+.card{background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06)}
+.row{display:flex;align-items:center;gap:12px;min-height:48px;padding:10px 16px;box-sizing:border-box;font-size:13px;color:#1d1d1f}
+.sep{height:1px;background:rgba(0,0,0,.07);margin-left:16px}
+.hint{font-size:12px;color:#6e6e73;line-height:1.4}
+.sec{font-size:13px;font-weight:600;color:#1d1d1f;padding:0 4px}
+.side{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:9px;height:32px;padding:0 8px;border-radius:9px;font-size:13px;color:#1d1d1f;cursor:default;text-decoration:none}
+.side.on{background:var(--acc);color:#fff;font-weight:500}
+.tile{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex:none}
+.kc{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 6px;box-sizing:border-box;border-radius:6px;background:#fff;border:1px solid rgba(0,0,0,.14);box-shadow:0 1px 0 rgba(0,0,0,.12);font-size:12px;color:#1d1d1f}
+.chip{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;font-size:12px;background:rgba(0,0,0,.06);color:#3a3a3c}
+.mi{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:6px;width:100%;height:26px;padding:0 10px;border-radius:7px;font-size:13px;color:#1d1d1f;cursor:default}
+.mi.on{background:var(--acc);color:#fff}
+.mk{width:14px;flex:none;display:inline-flex}
+.k{margin-left:auto;color:#6e6e73;font-size:12px}
+
+</style>
+</helmet>
+<div style="width: 760px; height: 820px; box-sizing: border-box; padding: 32px; background: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; display: flex; flex-direction: column; gap: 18px; --acc: {{accent}}"><h1 style="margin: 0; font-size: 17px; font-weight: 700; color: #1d1d1f">Thẻ cập nhật trong “Cập nhật &amp; hỗ trợ” — các trạng thái</h1><div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; font-weight: 600; color: #5e5e63; padding: 0 4px">Đã mới nhất</span>
+<section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px"><div style="display: flex; align-items: center; gap: 14px"><svg width="44" height="44" viewBox="0 0 100 100" aria-hidden="true" style="flex: none"><rect x="0" y="0" width="100" height="100" rx="22.4" fill="#10285A"></rect><text x="48" y="80" text-anchor="middle" font-family="'Be Vietnam Pro', -apple-system, 'Helvetica Neue', sans-serif" font-weight="700" font-size="64" fill="#F6F1E7">a</text><path d="M34 35 L47 25 L60 35" fill="none" stroke="#F6F1E7" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path><path d="M63 24 L73 13" fill="none" stroke="#E0533D" stroke-width="7.5" stroke-linecap="round"></path></svg><div style="flex: 1; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 14px; font-weight: 700; color: #1d1d1f">Dấu 1.0.0 (a1b2c3d)</span><span class="hint">Bạn đang dùng bản mới nhất · Kiểm tra lúc 9:41</span></div><button class="btn">Kiểm tra ngay</button></div></section></div><div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; font-weight: 600; color: #5e5e63; padding: 0 4px">Đang kiểm tra</span>
+<section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px"><div style="display: flex; align-items: center; gap: 14px"><svg width="44" height="44" viewBox="0 0 100 100" aria-hidden="true" style="flex: none"><rect x="0" y="0" width="100" height="100" rx="22.4" fill="#10285A"></rect><text x="48" y="80" text-anchor="middle" font-family="'Be Vietnam Pro', -apple-system, 'Helvetica Neue', sans-serif" font-weight="700" font-size="64" fill="#F6F1E7">a</text><path d="M34 35 L47 25 L60 35" fill="none" stroke="#F6F1E7" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path><path d="M63 24 L73 13" fill="none" stroke="#E0533D" stroke-width="7.5" stroke-linecap="round"></path></svg><div style="flex: 1; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 14px; font-weight: 700; color: #1d1d1f">Dấu 1.0.0 (a1b2c3d)</span><span class="hint">Đang kiểm tra bản mới…</span></div><span role="progressbar" aria-label="Đang kiểm tra" style="width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(0,0,0,0.12); border-top-color: var(--acc); flex: none"></span></div></section></div><div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; font-weight: 600; color: #5e5e63; padding: 0 4px">Đang tải</span>
+<section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px"><div style="display: flex; align-items: center; gap: 14px"><svg width="44" height="44" viewBox="0 0 100 100" aria-hidden="true" style="flex: none"><rect x="0" y="0" width="100" height="100" rx="22.4" fill="#10285A"></rect><text x="48" y="80" text-anchor="middle" font-family="'Be Vietnam Pro', -apple-system, 'Helvetica Neue', sans-serif" font-weight="700" font-size="64" fill="#F6F1E7">a</text><path d="M34 35 L47 25 L60 35" fill="none" stroke="#F6F1E7" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path><path d="M63 24 L73 13" fill="none" stroke="#E0533D" stroke-width="7.5" stroke-linecap="round"></path></svg><div style="flex: 1; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 14px; font-weight: 700; color: #1d1d1f">Đang tải Dấu 1.1.0</span><span class="hint">[dung lượng] · Bạn vẫn gõ bình thường</span></div><button class="btn">Huỷ</button></div><div role="progressbar" aria-valuenow="62" aria-valuemin="0" aria-valuemax="100" style="height: 6px; border-radius: 3px; background: rgba(0,0,0,0.08); overflow: hidden"><div style="width: 62%; height: 100%; background: var(--acc)"></div></div></section></div><div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; font-weight: 600; color: #5e5e63; padding: 0 4px">Chờ cài</span>
+<section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px"><div style="display: flex; align-items: center; gap: 14px"><svg width="44" height="44" viewBox="0 0 100 100" aria-hidden="true" style="flex: none"><rect x="0" y="0" width="100" height="100" rx="22.4" fill="#10285A"></rect><text x="48" y="80" text-anchor="middle" font-family="'Be Vietnam Pro', -apple-system, 'Helvetica Neue', sans-serif" font-weight="700" font-size="64" fill="#F6F1E7">a</text><path d="M34 35 L47 25 L60 35" fill="none" stroke="#F6F1E7" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path><path d="M63 24 L73 13" fill="none" stroke="#E0533D" stroke-width="7.5" stroke-linecap="round"></path></svg><div style="flex: 1; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 14px; font-weight: 700; color: #1d1d1f">Dấu 1.1.0 đã sẵn sàng</span><span class="hint">Sẽ cài khi bạn ngừng gõ một lúc</span></div><button class="btn pri">Cài ngay</button></div></section></div><div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; font-weight: 600; color: #5e5e63; padding: 0 4px">Không có mạng</span>
+<section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px"><div style="display: flex; align-items: center; gap: 14px"><span class="tile" style="width: 44px; height: 44px; border-radius: 11px; background: #8e8e93"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7"></path><path d="M20 4.5v4h-4"></path></svg></span><div style="flex: 1; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 14px; font-weight: 700; color: #1d1d1f">Không kiểm tra được bản mới</span><span class="hint">Không có kết nối mạng. Dấu vẫn gõ bình thường.</span></div><button class="btn">Thử lại</button></div></section></div><div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; font-weight: 600; color: #5e5e63; padding: 0 4px">Chữ ký không hợp lệ</span>
+<section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px"><div style="display: flex; align-items: center; gap: 14px"><span class="tile" style="width: 44px; height: 44px; border-radius: 11px; background: #b42318"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5L2.5 20h19z"></path><path d="M12 10v4.5M12 17.2v.3"></path></svg></span><div style="flex: 1; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 14px; font-weight: 700; color: #1d1d1f">Đã huỷ bản cập nhật 1.1.0</span><span class="hint">Chữ ký số không khớp nên Dấu không cài. Bản đang dùng không bị ảnh hưởng.</span></div><a class="btn" href="Report.dc.html">Báo lỗi…</a></div></section></div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0A64D8","options":["#0A64D8","#7A3FD1","#C2410C","#1F7A4D"]},"$preview":{"width":760,"height":820}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent ?? '#0A64D8' };
+}
+}
+</script>
+</body>
+</html>

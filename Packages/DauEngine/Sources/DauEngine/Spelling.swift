@@ -40,14 +40,14 @@ enum Spelling {
         y yêm yên yêng yêt yêu
         o oc oi om on ong op ot
         ooc oong
-        oa oac oach oai oam oan oang oanh oap oat oay
+        oa oac oach oai oam oan oang oanh oao oap oat oay
         oăc oăm oăn oăng oăt
         oe oen oeo oet
         ô ôc ôi ôm ôn ông ôp ôt
         ơ ơi ơm ơn ơp ơt
         u ua uc ui um un ung up ut
         uân uâng uât uây
-        uê uêch uênh
+        uê uêch uênh uêu
         uôc uôi uôm uôn uông uôt
         uơ
         uy uya uych uyên uyêt uynh uyp uyt uyu

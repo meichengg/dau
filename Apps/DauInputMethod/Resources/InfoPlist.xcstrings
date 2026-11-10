@@ -1,5 +1,5 @@
 {
-  "sourceLanguage" : "vi",
+  "sourceLanguage" : "en",
   "strings" : {
     "CFBundleDisplayName" : {
       "comment" : "Bundle display name (D24: always with diacritics).",
@@ -38,13 +38,13 @@
       }
     },
     "com.codefastlabs.dau.inputmethod.Dau.vi" : {
-      "comment" : "Input mode name shown in the input source menu (D2, D24). Key = mode ID in Info.plist.",
+      "comment" : "Input mode name shown in the input source menu (D24, D41). Key = mode ID in Info.plist.",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dấu – Tiếng Việt"
+            "value" : "Dấu – Vietnamese"
           }
         },
         "vi" : {

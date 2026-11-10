@@ -8,7 +8,9 @@ import Observation
 ///
 /// Steps:
 /// 1. "Tắt bộ gõ cũ trước đã": only while another Vietnamese input method is running.
-///    Rechecked when the window becomes active; skipping is allowed.
+///    Rechecked when the window becomes active; skipping is allowed. "Quay lại" from
+///    step 2 shows it again: "Đã tắt bộ gõ cũ" when none runs any more, the conflict
+///    screen when one runs again.
 /// 2. "Bật Dấu": install if needed, then enable: macOS asks the user to allow it, so the
 ///    step waits ("Đang chờ"), then shows the result read back from Text Input Sources
 ///    (N4, N5): enabled → "Đã bật"; still off or not listed → "Chưa bật được" with the
@@ -39,6 +41,26 @@ final class OnboardingFlow {
     private(set) var isWorking = false
     /// What went wrong with the last action, shown on step 2.
     private(set) var problem: Problem?
+    /// Step 1 was part of this onboarding: another input method was running when it
+    /// started. Step 2 offers "Quay lại" only then, so the button never leads to a step
+    /// that was never shown.
+    private(set) var cameThroughOldInputMethods = false
+    /// Every old input method found running during this onboarding, in the order found
+    /// ("Đã tắt bộ gõ cũ" lists them).
+    private(set) var foundOldInputMethods: [DetectedInputMethod] = []
+    /// The user came back to step 1 with "Quay lại": it stays there, showing
+    /// "Đã tắt bộ gõ cũ" while nothing runs, instead of moving on by itself.
+    private(set) var cameBackToOldInputMethods = false
+
+    /// What step 1 shows.
+    enum OldInputMethodsScreen: Equatable, Sendable {
+        /// Another input method is running (artboard OnboardingConflict).
+        case conflict
+        /// None runs any more (artboard OnboardingConflictDone).
+        case done
+    }
+
+    var oldInputMethodsScreen: OldInputMethodsScreen { conflicts.isEmpty ? .done : .conflict }
 
     enum Problem: Equatable, Sendable {
         /// An error: the copy, the signature, the registration…
@@ -109,8 +131,11 @@ final class OnboardingFlow {
         cancelEnable()
         problem = nil
         errorDetail = nil
+        foundOldInputMethods = []
+        cameBackToOldInputMethods = false
         readSystem()
         step = conflicts.isEmpty ? .enable : .oldInputMethods
+        cameThroughOldInputMethods = step == .oldInputMethods
         if let forced = forcedStartStep {
             step = forced
             forcedStartStep = nil
@@ -118,10 +143,11 @@ final class OnboardingFlow {
     }
 
     /// Reads everything again (window became active, input sources changed). On step
-    /// 1, moves on by itself once nothing clashes any more.
+    /// 1, moves on by itself once nothing clashes any more, unless the user came back to
+    /// it ("Đã tắt bộ gõ cũ" then shows, or the conflict screen if one runs again).
     func refresh() {
         readSystem()
-        if step == .oldInputMethods && conflicts.isEmpty { step = .enable }
+        if step == .oldInputMethods && conflicts.isEmpty && !cameBackToOldInputMethods { step = .enable }
         // macOS turned Dấu on (the user allowed it, or added it by hand): the failure no
         // longer holds.
         if status.isEnabled { problem = nil }
@@ -133,29 +159,56 @@ final class OnboardingFlow {
     /// Step 1, "Bỏ qua": go on with the other input method still running.
     func skip() {
         guard step == .oldInputMethods else { return }
+        cameBackToOldInputMethods = false
         step = .enable
     }
 
+    /// "Quay lại" (HIG: an assistant's previous pane). Step 2 offers it before Dấu is on
+    /// (before "Bật Dấu", while waiting for Allow, after an install error; artboards
+    /// OnboardingEnable, OnboardingEnableNotes, OnboardingEnableWaiting,
+    /// OnboardingEnableError) and only when step 1 was part of this onboarding. Once Dấu
+    /// is on, and on "Chưa bật được", the screen keeps its own buttons as drawn.
     var canGoBack: Bool {
         switch step {
         case .oldInputMethods: false
-        case .enable: !conflicts.isEmpty
+        case .enable:
+            switch enableScreen {
+            case .ready, .waiting, .error: cameThroughOldInputMethods
+            case .done, .notEnabled: false
+            }
         case .typing: true
         }
     }
 
+    /// Back one step. From step 2 it cancels a wait still running (as "Thử lại" does, so
+    /// no wait outlives the screen) and drops the last error; step 1 then checks the old
+    /// input methods again: "Đã tắt bộ gõ cũ" (artboard OnboardingConflictDone) when none
+    /// runs, the conflict screen when one does, never an empty list.
     func back() {
         guard canGoBack, let previous = Step(rawValue: step.rawValue - 1) else { return }
         cancelEnable()
         problem = nil
+        errorDetail = nil
+        if previous == .oldInputMethods { cameBackToOldInputMethods = true }
         step = previous
+        if previous == .oldInputMethods { refresh() }
     }
 
-    /// Step 2 → 3, once Dấu is enabled.
+    /// "Tiếp tục": step 1 → 2 once no old input method runs ("Đã tắt bộ gõ cũ"); step
+    /// 2 → 3 once Dấu is enabled.
     func next() {
-        guard step == .enable, status.isEnabled else { return }
-        problem = nil
-        step = .typing
+        switch step {
+        case .oldInputMethods:
+            guard conflicts.isEmpty else { return }
+            cameBackToOldInputMethods = false
+            step = .enable
+        case .enable:
+            guard status.isEnabled else { return }
+            problem = nil
+            step = .typing
+        case .typing:
+            return
+        }
     }
 
     /// Step 2, "Bật Dấu" and "Thử lại": installs first when needed, then waits for macOS
@@ -199,7 +252,7 @@ final class OnboardingFlow {
         if let error = error as? InputMethodInstallerError { return error.detail }
         // Any other error (a file operation): its text is in the system's language, not
         // Dấu's, so the screen says only where it happened; the log has the error.
-        return String(localized: "Có lỗi khi chép hoặc đăng ký bộ gõ.")
+        return String(localized: "Something went wrong while copying or registering the input method.")
     }
 
     /// "Mở System Settings" on the "Chưa bật được" screen (N4: only opens the pane).
@@ -228,10 +281,14 @@ final class OnboardingFlow {
     /// Debug captures: show a step as is.
     func show(_ step: Step) {
         self.step = step
+        if step == .oldInputMethods { cameThroughOldInputMethods = true }
     }
 
     private func readSystem() {
         conflicts = detector.detect().filter(\.isRunning)
+        for app in conflicts where !foundOldInputMethods.contains(where: { $0.bundleID == app.bundleID }) {
+            foundOldInputMethods.append(app)
+        }
         otherSources = detector.otherVietnameseSources()
         status = installer.status()
         shortcut = readShortcut()

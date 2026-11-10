@@ -47,25 +47,25 @@ enum KnownInputMethods {
 
     static let all: [Entry] = [
         Entry(name: "OpenKey", bundleIDs: ["com.tuyenmai.openkey"], steps: [
-            String(localized: "Trong “Bảng điều khiển…” của OpenKey, tắt “Khởi động cùng macOS”"),
-            String(localized: "Bấm biểu tượng OpenKey trên thanh menu, chọn “Thoát”"),
+            String(localized: "In OpenKey’s “Bảng điều khiển…”, turn off “Khởi động cùng macOS”"),
+            String(localized: "Click the OpenKey icon in the menu bar, then choose “Thoát”"),
             loginItemsStep("OpenKey"),
         ]),
         Entry(name: "EVKey", bundleIDs: ["com.lamquangminh.evkey"], steps: nil),
         Entry(name: "GoTiengViet", bundleIDs: ["com.trankynam.GoTiengViet"], steps: nil),
         Entry(name: "XKey", bundleIDs: ["com.codetay.XKey"], steps: [
-            String(localized: "Trong cài đặt của XKey, tắt “Khởi động cùng hệ thống”"),
-            String(localized: "Chọn “Thoát XKey” trong menu của XKey"),
+            String(localized: "In XKey’s settings, turn off “Khởi động cùng hệ thống”"),
+            String(localized: "Choose “Thoát XKey” from XKey’s menu"),
             loginItemsStep("XKey"),
         ]),
         Entry(name: "PHTV", bundleIDs: ["com.phamhungtien.phtv"], steps: [
-            String(localized: "Trong cài đặt của PHTV, tắt “Khởi động cùng macOS”"),
-            String(localized: "Thoát PHTV"),
+            String(localized: "In PHTV’s settings, turn off “Khởi động cùng macOS”"),
+            String(localized: "Quit PHTV"),
             loginItemsStep("PHTV"),
         ]),
         Entry(name: "Gõ Nhanh", bundleIDs: ["org.gonhanh.GoNhanh"], steps: [
-            String(localized: "Trong cài đặt của Gõ Nhanh, tắt “Launch at login”"),
-            String(localized: "Thoát Gõ Nhanh"),
+            String(localized: "In Gõ Nhanh’s settings, turn off “Launch at login”"),
+            String(localized: "Quit Gõ Nhanh"),
             loginItemsStep("Gõ Nhanh"),
         ]),
         Entry(name: "GoKey", bundleIDs: ["com.goxkey.app"], steps: nil),
@@ -75,14 +75,14 @@ enum KnownInputMethods {
     /// menu wording (N5).
     static func quitSteps(for name: String) -> [String] {
         all.first { $0.name == name }?.steps ?? [
-            String(localized: "Thoát \(name)"),
+            String(localized: "Quit \(name)"),
             loginItemsStep(name),
         ]
     }
 
     /// System Settings path on macOS 27.2 (research section 2.5).
     static func loginItemsStep(_ name: String) -> String {
-        String(localized: "Trong \(SystemUINames.system().loginItemsPath), tắt \(name)")
+        String(localized: "In \(SystemUINames.system().loginItemsPath), turn off \(name)")
     }
 }
 
@@ -186,15 +186,15 @@ extension InputMethodInstallerError {
     var detail: String {
         switch self {
         case .unavailable:
-            String(localized: "Không tìm thấy bộ gõ trong ứng dụng Dấu.")
+            String(localized: "The input method wasn’t found inside the Dấu app.")
         case .invalidSignature:
-            String(localized: "Chữ ký của bộ gõ không hợp lệ, hoặc không cùng nhà phát triển với ứng dụng.")
+            String(localized: "The input method’s signature isn’t valid, or it isn’t from the same developer as the app.")
         case .failed(let message) where message == "not installed":
-            String(localized: "Bộ gõ chưa được chép vào máy.")
+            String(localized: "The input method hasn’t been copied to this Mac.")
         case .failed:
-            String(localized: "macOS báo lỗi khi chép hoặc đăng ký bộ gõ.")
+            String(localized: "macOS reported an error while copying or registering the input method.")
         case .stillListed:
-            String(localized: "Dấu vẫn còn trong nguồn đầu vào.")
+            String(localized: "Dấu is still in the input sources.")
         }
     }
 }
@@ -231,6 +231,10 @@ protocol InputMethodInstaller: AnyObject {
     func installedIsGenuine() -> Bool
     /// Replaces an older installed input method with the one in the app (D7).
     func upgradeIfNeeded() async throws -> UpgradeOutcome
+    /// Whether one of Dấu's entries is stored among the input sources (the same reading
+    /// as `waitUntilRemovedFromInputSources`). True when it cannot tell (no bundle in the
+    /// app), so uninstall takes the usual path and reports the error there.
+    func isListedInInputSources() -> Bool
     /// Uninstall, step 1 (D16): opens the Input Sources list of System Settings, where the
     /// user removes Dấu. Selects nothing and removes nothing: macOS picks a keyboard itself
     /// when Dấu goes away.
@@ -263,6 +267,9 @@ final class FakeInputMethodInstaller: InputMethodInstaller {
     /// `finishUninstall` throws this (a failure after the wait).
     var finishFailure: InputMethodInstallerError?
     var genuine = true
+    /// `upgradeIfNeeded` takes a moment, then replaces a bad installed copy with a good one
+    /// (`genuine` becomes true): the ordering test of the launch upgrade and the check.
+    var upgradeRepairs = false
     private(set) var calls: [String] = []
 
     init(_ status: InputMethodStatus = .notInstalled, failure: InputMethodInstallerError? = nil) {
@@ -303,8 +310,15 @@ final class FakeInputMethodInstaller: InputMethodInstaller {
     func upgradeIfNeeded() async throws -> UpgradeOutcome {
         calls.append("upgrade")
         if let failure { throw failure }
+        if upgradeRepairs {
+            try await Task.sleep(for: .milliseconds(30))
+            genuine = true
+            return .upgraded(from: nil, to: "2")
+        }
         return .upToDate
     }
+
+    func isListedInInputSources() -> Bool { stillListed }
 
     func prepareUninstall() async throws {
         calls.append("prepareUninstall")

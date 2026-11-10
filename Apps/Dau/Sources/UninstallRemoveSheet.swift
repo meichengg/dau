@@ -1,14 +1,14 @@
 import Carbon
 import SwiftUI
 
-/// "Bỏ Dấu khỏi Nguồn nhập liệu": the sheet over the Settings window after "Tiếp tục
+/// "Bỏ Dấu khỏi nguồn đầu vào": the sheet over the Settings window after "Tiếp tục
 /// gỡ" (D16). macOS lets only the user remove an input source, so it lists what is done
 /// and what the user does, and waits until Dấu is gone from the list; then Dấu stops the
 /// input method and moves it to the Trash (`InputMethodActions.performUninstall`). Built
 /// like the add-rule sheet (D9): the sheet's own button bar from the toolbar's
 /// cancellation and primary placements, no default button (Return must not cancel or
-/// open anything by accident). The wording of macOS's own screens is English, as on the
-/// user's Mac.
+/// open anything by accident). Names of macOS's own screens come from the system's strings
+/// in the user's macOS language (D38, `SystemUINames`).
 struct UninstallRemoveSheet: View {
     let actions: InputMethodActions
     @Environment(\.controlActiveState) private var activeState
@@ -20,24 +20,24 @@ struct UninstallRemoveSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 6) {
-                Text("Bỏ Dấu khỏi nguồn đầu vào")
+                Text("Remove Dấu from Your Input Sources")
                     .font(.headline)
                     .accessibilityAddTraits(.isHeader)
-                Text("Chỉ bạn mới bỏ được một nguồn đầu vào khỏi macOS. \(ui.systemSettings) đã mở sẵn danh sách \(ui.inputSources).")
+                Text("Only you can remove an input source from macOS. \(ui.systemSettings) has the \(ui.inputSources) list open for you.")
                     .font(.system(size: 13))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             OnboardingCard(spacing: 10) {
                 NumberedLine(number: 1,
-                             text: Text("Chọn **Dấu – Tiếng Việt** ở danh sách bên trái, bấm **–**, rồi **\(ui.done)**."),
+                             text: Text("Select **\(ui.dauInputSource)** in the list on the left, click **–**, then **\(ui.done)**."),
                              isCurrent: true)
             }
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 ProgressView()
                     .controlSize(.small)
                     .accessibilityHidden(true)
-                Text("Khi Dấu không còn trong danh sách, bộ gõ sẽ được chuyển vào Thùng rác.")
+                Text("Once Dấu is gone from the list, the input method is moved to \(ui.trash).")
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -51,7 +51,7 @@ struct UninstallRemoveSheet: View {
                     Image(systemName: "info.circle")
                         .foregroundStyle(.secondary)
                         .accessibilityHidden(true)
-                    Hint(Text("Bạn đang dùng Dấu. Nếu nút – bị mờ, chọn bàn phím khác trên menu nguồn đầu vào trước."))
+                    Hint(Text("You’re using Dấu. If the – button is dimmed, first choose another keyboard from the Input menu."))
                 }
                 .accessibilityElement(children: .combine)
             }
@@ -60,11 +60,11 @@ struct UninstallRemoveSheet: View {
         .frame(width: Self.width, alignment: .leading)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
-                Button("Huỷ gỡ cài đặt", role: .cancel) { actions.cancelUninstall() }
+                Button("Cancel Uninstall", role: .cancel) { actions.cancelUninstall() }
                     .keyboardShortcut(.cancelAction)
             }
             ToolbarItem(placement: .primaryAction) {
-                Button("Mở \(ui.systemSettings)") { actions.showInputSources() }
+                Button("Open \(ui.systemSettings)") { actions.showInputSources() }
             }
         }
         // Read again when the sheet appears, when its window becomes key again and whenever

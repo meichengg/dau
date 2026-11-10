@@ -25,7 +25,7 @@ final class InputMethodActions {
 
     private(set) var banner: BannerState = .idle
     private(set) var isUninstalling = false
-    /// The uninstall sheet ("Bỏ Dấu khỏi Nguồn nhập liệu") is showing.
+    /// The uninstall sheet ("Bỏ Dấu khỏi nguồn đầu vào") is showing.
     private(set) var isShowingUninstallSheet = false
     /// Dấu is the selected input source (re-read by the sheet while it waits): the sheet
     /// then warns that "–" may be dimmed and asks to select another keyboard first.
@@ -50,6 +50,7 @@ final class InputMethodActions {
     @ObservationIgnored private let readEnglishLayout: () -> String?
     @ObservationIgnored private var bannerTask: Task<EnableOutcome, Error>?
     @ObservationIgnored private var bannerAttempt = 0
+    @ObservationIgnored private var launchUpgrade: Task<Void, Never>?
 
     init(installer: InputMethodInstaller,
          openKeyboardSettings: @escaping () -> Void = SystemSettings.openKeyboard,
@@ -114,8 +115,31 @@ final class InputMethodActions {
         banner = .idle
     }
 
+    /// D7: replaces an older installed input method with the one in the app (at launch).
+    /// The signature check (`checkInstalledAfterUpgrade`) waits for it.
+    func startLaunchUpgrade() {
+        guard launchUpgrade == nil else { return }
+        let installer = self.installer
+        launchUpgrade = Task { @MainActor in
+            do {
+                let outcome = try await installer.upgradeIfNeeded()
+                installLogger.notice("event=launch-upgrade outcome=\(String(describing: outcome), privacy: .public)")
+            } catch {
+                installLogger.error("event=launch-upgrade-failed error=\(String(describing: error), privacy: .public)")
+            }
+        }
+    }
+
+    /// D37: the signature check, once the launch upgrade has finished (an old copy the
+    /// upgrade replaces must not raise "Cài lại"); at once when none was started or it is
+    /// done, so every activation checks.
+    func checkInstalledAfterUpgrade() async {
+        await launchUpgrade?.value
+        checkInstalled()
+    }
+
     /// Checks the installed input method's signature (at launch and whenever the app
-    /// becomes active).
+    /// becomes active). Use `checkInstalledAfterUpgrade` from the app.
     func checkInstalled() {
         guard reinstall != .working else { return }
         installedTampered = !installer.installedIsGenuine()
@@ -145,12 +169,6 @@ final class InputMethodActions {
         selectionPinned = shown
         isShowingUninstallSheet = shown
         self.dauIsSelected = dauIsSelected
-    }
-    /// Captures (`--capture-banner`): show a banner state, running nothing.
-    func showBannerForCapture(_ state: BannerState, shortcut: InputSourceShortcut.Reading = .unknown, englishLayout: String? = nil) {
-        banner = state
-        self.shortcut = shortcut
-        self.englishLayout = englishLayout
     }
     #endif
 
@@ -213,6 +231,12 @@ final class InputMethodActions {
         let installer = self.installer
         let task = Task { @MainActor [weak self] () -> UninstallOutcome in
             do {
+                // D16: Dấu installed but not among the input sources (never enabled, or the
+                // user removed it already): nothing to wait for, so no System Settings and
+                // no sheet; straight to the removal.
+                guard installer.isListedInInputSources() else {
+                    return .done(try await installer.finishUninstall(deleteSettings: deleteSettings))
+                }
                 try await installer.prepareUninstall()
                 self?.isShowingUninstallSheet = true
                 self?.refreshDauIsSelected()
@@ -272,49 +296,50 @@ enum UninstallAlert {
     /// The confirmation, and its "Xoá cả cài đặt và quy tắc ứng dụng" checkbox (off).
     static func confirmation() -> (NSAlert, NSButton) {
         let alert = NSAlert()
-        alert.messageText = String(localized: "Gỡ Dấu khỏi máy?")
+        alert.messageText = String(localized: "Uninstall Dấu?")
         // macOS lets only the user remove an input source, so the alert says what happens
         // in order (docs/research/M5-INSTALL.md section 4).
         let ui = SystemUINames.system()   // macOS's own names (D38)
-        alert.informativeText = String(localized: "Bạn sẽ bỏ Dấu khỏi \(ui.inputSources) trong \(ui.systemSettings); sau đó Dấu được chuyển vào Thùng rác.")
-        let remove = alert.addButton(withTitle: String(localized: "Tiếp tục gỡ"))
+        alert.informativeText = String(localized: "You’ll remove Dấu from \(ui.inputSources) in \(ui.systemSettings). Then the input method is moved to \(ui.trash).")
+        let remove = alert.addButton(withTitle: String(localized: "Uninstall"))
         remove.hasDestructiveAction = true
         // Return must not remove Dấu: no default button; Esc cancels.
         remove.keyEquivalent = ""
-        let cancel = alert.addButton(withTitle: String(localized: "Huỷ"))
+        let cancel = alert.addButton(withTitle: String(localized: "Cancel"))
         cancel.keyEquivalent = "\u{1b}"
         alert.showsSuppressionButton = true
         let checkbox = alert.suppressionButton!
-        checkbox.title = String(localized: "Xoá cả cài đặt và quy tắc ứng dụng")
+        checkbox.title = String(localized: "Also delete settings and app rules")
         checkbox.state = .off
         return (alert, checkbox)
     }
 
     static func done(_ report: UninstallReport) -> NSAlert {
         let alert = NSAlert()
-        alert.messageText = String(localized: "Đã gỡ bộ gõ Dấu")
+        alert.messageText = String(localized: "Dấu’s input method was removed")
         let ui = SystemUINames.system()   // macOS's own names (D38)
         var lines: [String] = []
         if report.movedToTrash {
-            lines.append(String(localized: "Bộ gõ đã được chuyển vào Thùng rác."))
+            lines.append(String(localized: "The input method was moved to \(ui.trash)."))
         }
         if report.stillEnabled {
-            lines.append(String(localized: "macOS vẫn báo Dấu trong nguồn đầu vào; bạn có thể bỏ nó trong \(ui.inputSourcesPath)."))
+            lines.append(String(localized: "macOS still lists Dấu among the input sources; you can remove it in \(ui.inputSourcesPath)."))
         }
         if report.dataDeleted {
-            lines.append(String(localized: "Đã xoá cài đặt và quy tắc ứng dụng."))
+            lines.append(String(localized: "Settings and app rules were deleted."))
         }
-        lines.append(String(localized: "Muốn xoá cả ứng dụng, kéo Dấu trong thư mục \(ui.applications) vào Thùng rác."))
+        lines.append(String(localized: "To remove the app too, drag Dấu from the \(ui.applications) folder to \(ui.trash)."))
         alert.informativeText = lines.joined(separator: " ")
-        alert.addButton(withTitle: String(localized: "Thoát Dấu"))
+        alert.addButton(withTitle: String(localized: "Quit Dấu"))
         return alert
     }
 
     static func failed() -> NSAlert {
         let alert = NSAlert()
         alert.alertStyle = .warning
-        alert.messageText = String(localized: "Chưa gỡ được Dấu")
-        alert.informativeText = String(localized: "Bạn có thể bỏ “Dấu – Tiếng Việt” trong \(SystemUINames.system().inputSourcesPath), rồi thử lại.")
+        alert.messageText = String(localized: "Couldn’t Remove Dấu")
+        let ui = SystemUINames.system()
+        alert.informativeText = String(localized: "You can remove “\(ui.dauInputSource)” in \(ui.inputSourcesPath), then try again.")
         alert.addButton(withTitle: String(localized: "OK"))
         return alert
     }

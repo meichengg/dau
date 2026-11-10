@@ -3,6 +3,7 @@ import SwiftUI
 import DauShared
 
 // Usage: SnapshotSettings <output-dir> [<artboard-dir> [<real-window-dir> [<onboarding-capture-dir>]]]
+//        [-AppleLanguages '(en)']   (default: Vietnamese, as the artboards)
 // - Renders every page in light, dark and high-contrast appearance and the 2×2 grids of
 //   the four sections. No pass criteria: the layout is checked on the real window
 //   (scripts/selftest/settings-window).
@@ -16,10 +17,15 @@ import DauShared
 //   sizes exactly. The other appearance uses this tool's window.
 // - With <onboarding-capture-dir> (Dau --capture-onboarding <dir>), also writes
 //   "onboarding-<step>-compare-<mode>.png" (mockup | real window) for the onboarding
-//   artboards (OnboardingConflict, OnboardingEnable, OnboardingEnableNotes,
+//   artboards (OnboardingConflict, OnboardingConflictDone, OnboardingEnable, OnboardingEnableNotes,
 //   OnboardingEnableWaiting, OnboardingEnableFailed, OnboardingEnableError,
 //   OnboardingEnableDone, OnboardingEnableDoneNoShortcut, Onboarding) and their element frames. There is no dark artboard: the
 //   dark compare puts the light mockup beside the dark window.
+
+// Before anything reads a localization: the app's catalog for Bundle.main, Vietnamese
+// unless -AppleLanguages is given.
+SnapshotLocalization.installForMainBundle()
+print("localization:", Bundle.main.preferredLocalizations.first ?? "none")
 
 var arguments: [String] = []
 var skipNext = false
@@ -63,6 +69,7 @@ NSApplication.shared.setActivationPolicy(.accessory)
 MainActor.assumeIsolated {
     // A throwaway suite so snapshots never touch real settings.
     let suite = "dau.snapshot-settings"
+    defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
     UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite)
     let store = SettingsStore(defaults: UserDefaults(suiteName: suite) ?? .standard, suiteName: suite)
     store.save(Snapshot.sampleSettings())
@@ -95,6 +102,13 @@ MainActor.assumeIsolated {
             window(.smart, enabled).environment(\.smartAdvancedExpanded, true),
             to: file("smart-advanced"), appearance: appearance,
             size: CGSize(width: windowSize.width, height: windowSize.height + 80))
+        // The Language row waiting for a relaunch (D41, artboard SettingsLanguagePending):
+        // set for Dấu to English while Dấu still shows Vietnamese. The row otherwise reads
+        // the real preferences, so this is the only fixed state.
+        app["updates-language-pending-\(mode)"] = Snapshot.render(
+            window(.updates, enabled).environment(\.languageRowStatus,
+                                                  AppLanguage.Status(current: "vi", next: "en", setForDau: true)),
+            to: file("updates-language-pending"), appearance: appearance, size: windowSize)
     }
 
     Snapshot.grid(SettingsSection.allCases.map { outDir.appendingPathComponent("\($0.rawValue)-light.png") },
@@ -175,6 +189,17 @@ MainActor.assumeIsolated {
                 rows.append("\(board.page)-\(board.mode) | \(key) | \(f(mock.frames[key])) | \(f((real?.1 ?? shot.frames)[appKey]))")
             }
         }
+        // The Language row waiting for a relaunch: the 740×560 window of the artboard
+        // (at 80,100 in its 900×760 frame) beside this tool's window.
+        if let mock = Mockup.render(artboards.appendingPathComponent("SettingsLanguagePending.dc.html"),
+                                    size: CGSize(width: 900, height: 760),
+                                    crop: CGRect(x: 80, y: 100, width: 740, height: 560), measure: [:]),
+           let shot = app["updates-language-pending-light"] {
+            Snapshot.sideBySide([mock.image, shot.rep],
+                                to: outDir.appendingPathComponent("updates-language-pending-compare-light.png"))
+        } else {
+            print("cannot render SettingsLanguagePending")
+        }
         // The add-rule sheet: the dialog only, against the sheet presented off screen.
         if let full = Mockup.render(artboards.appendingPathComponent("SettingsAppsAdd.dc.html"),
                                     size: CGSize(width: 900, height: 680), crop: .zero,
@@ -206,7 +231,8 @@ MainActor.assumeIsolated {
                 "onbSegmented": "document.querySelector('main .seg') && document.querySelector('main .seg').getBoundingClientRect()",
                 "onbButtons": "document.querySelector('main > div:last-child').getBoundingClientRect()",
             ]
-            for (step, file) in [("1", "OnboardingConflict"), ("2", "OnboardingEnable"),
+            for (step, file) in [("1", "OnboardingConflict"), ("1-done", "OnboardingConflictDone"),
+                                 ("2", "OnboardingEnable"),
                                  ("2-notes", "OnboardingEnableNotes"),
                                  ("2-waiting", "OnboardingEnableWaiting"), ("2-failed", "OnboardingEnableFailed"),
                                  ("2-error", "OnboardingEnableError"), ("2-done", "OnboardingEnableDone"),

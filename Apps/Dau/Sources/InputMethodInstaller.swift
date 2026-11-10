@@ -14,7 +14,7 @@ import os
 // - `SystemSettingsControl`: System Settings' Keyboard cache and the System Settings
 //   process (D37, M5-INSTALL.md section 8.1b);
 // - `InputSourceCaches`: the input source list cache of every app (D37, M5-INSTALL.md
-//   section 0 (b)10, (d)10, section 8.1b round E).
+//   section 9.10, section 10.10, section 8.1b round E).
 //
 // N4: install copies Dấu's own files; enable and uninstall run only from a button the
 // user clicked ("Bật Dấu", "Bật lại", "Tiếp tục gỡ"); upgrade replaces Dấu's own bundle
@@ -121,7 +121,7 @@ struct InputSourceCacheCounts: Equatable, Sendable {
 }
 
 /// The input source list caches of every app (D37; docs/research/M5-INSTALL.md section 0
-/// (b)10, (d)10, section 8.1b round E). Each sandboxed app (System Settings' Keyboard
+/// section 9.10, section 10.10, section 8.1b round E). Each sandboxed app (System Settings' Keyboard
 /// extension too) keeps `com.apple.IntlDataCache.le*` in its own folder of the user cache
 /// folder and uses it as is, even after a relaunch; a missing cache is rebuilt from disk
 /// at the next `TISRegisterInputSource`. The shared cache in the folder's root refreshes
@@ -294,6 +294,11 @@ final class SystemInputMethodInstaller: InputMethodInstaller {
         return .upgraded(from: installed.version, to: new)
     }
 
+    func isListedInInputSources() -> Bool {
+        guard let embedded = files.embedded else { return true }
+        return !sources.storedEnabledIDs(bundleID: embedded.bundleID).isEmpty
+    }
+
     func prepareUninstall() async throws {
         guard files.embedded != nil else { throw InputMethodInstallerError.unavailable }
         // Only opens the list: "–" works for the selected source too, and macOS selects a
@@ -363,7 +368,7 @@ final class SystemInputMethodInstaller: InputMethodInstaller {
     ///
     /// Heuristic on an undocumented format: a cache that lists the input method is taken
     /// to contain its path, ".../Input Methods/DauInputMethod.app", as UTF-8
-    /// (M5-INSTALL.md section 0 (b)10 found the bundle name in rebuilt caches; the exact
+    /// (M5-INSTALL.md section 9.10 found the bundle name in rebuilt caches; the exact
     /// bytes are not documented and may change).
     private func refreshStaleCaches() {
         let url = files.installedURL
@@ -434,10 +439,13 @@ struct InputMethodBundleFiles: InputMethodFiles {
     /// Default: the user's Trash (`FileManager.trashItem`).
     var trash: (URL) throws -> Void = { try FileManager.default.trashItem(at: $0, resultingItemURL: nil) }
 
+    /// The input method inside this app.
+    nonisolated static let standardEmbeddedURL = Bundle.main.bundleURL.appendingPathComponent("Contents/Library/Input Methods/DauInputMethod.app")
+    /// The user's Input Methods folder.
+    nonisolated static let standardDirectory = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Input Methods")
+
     static func standard() -> InputMethodBundleFiles {
-        InputMethodBundleFiles(
-            embeddedURL: Bundle.main.bundleURL.appendingPathComponent("Contents/Library/Input Methods/DauInputMethod.app"),
-            directory: FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Input Methods"))
+        InputMethodBundleFiles(embeddedURL: standardEmbeddedURL, directory: standardDirectory)
     }
 
     /// Same file name as inside the app (D37: never changes).

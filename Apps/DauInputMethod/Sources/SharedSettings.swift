@@ -8,7 +8,7 @@ let settingsLogger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "DauInput
                             category: "settings")
 
 extension SettingsStore {
-    /// The store the input method reads and the "Kiểu gõ" menu writes, opened once per
+    /// The store the input method reads and the input menu's typing methods write, opened once per
     /// process (a `static let` is initialized exactly once, thread-safely, so the choice
     /// below is logged once).
     ///

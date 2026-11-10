@@ -1,0 +1,21 @@
+# Câu trộn Việt–Anh, tự viết. Mỗi dòng một câu.
+Mình đã push code lên GitHub rồi, anh review giúp em nhé.
+Deadline của project này là thứ sáu tuần sau.
+Sếp vừa gửi email về buổi meeting chiều nay.
+Em cần reset password vì quên mất rồi.
+Cái server bị lỗi nên website không vào được.
+Tối nay xem phim trên Netflix hay YouTube đây?
+Bạn cài Docker xong thì chạy lại file config nhé.
+Anh ơi, cho em xin feedback về bản design mới.
+Mình mua cái laptop này trên Shopee với giá khá rẻ.
+Nhớ update phiên bản mới nhất của Chrome trước khi test.
+Team mình họp online qua Zoom lúc chín giờ.
+Cuối tuần này có sale lớn ở các shop quần áo.
+Em đang học Python để làm data analysis.
+Cái router wifi nhà mình hay bị mất kết nối.
+Anh gửi link Google Drive cho em với.
+Tháng sau công ty tổ chức workshop về marketing.
+Mình order một ly coffee và một cái bánh.
+Đừng quên commit trước khi chuyển sang branch khác.
+Ứng dụng mới có giao diện dark mode rất đẹp.
+Bạn có dùng iPhone hay Android vậy?

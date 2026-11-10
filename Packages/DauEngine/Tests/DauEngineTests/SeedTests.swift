@@ -62,6 +62,36 @@ struct SeedTests {
         #expect(u.text.map(\.value) == scalars("hóc"))
     }
 
+    /// D20 exception (b) + D33: a word the engine cannot seed (here 8 letters) takes the
+    /// keys typed after it unchanged until it ends, like an over-long word typed here.
+    @Test func seedOverflowPassesTheRestOfTheWord() {
+        var t = Typist()
+        t.text.append(contentsOf: "keyboard".unicodeScalars)
+        t.engine.seedOverflow(shown: 8)
+        #expect(t.engine.isComposing && t.engine.lastShown == nil && !t.engine.isSpellingLocked)
+        t.type("bars ")
+        #expect(t.string == "keyboardbars ")
+        #expect(!t.engine.isComposing)
+        // The next word is Vietnamese again.
+        t.type("vieetj")
+        #expect(t.string == "keyboardbars việt")
+
+        // ⌫ over the whole word (8 shown + 1 typed) ends the state; less keeps it.
+        var u = Typist()
+        u.text.append(contentsOf: "keyboard".unicodeScalars)
+        u.engine.seedOverflow(shown: 8)
+        u.type("b⌫⌫")
+        #expect(u.engine.isComposing)
+        u.type("⌫⌫⌫⌫⌫⌫⌫")
+        #expect(!u.engine.isComposing)
+        u.type("vieetj")
+        #expect(u.string == "việt")
+
+        var e = VietEngine()
+        e.seedOverflow(shown: 0)
+        #expect(!e.isComposing)
+    }
+
     @Test func rejectsWhatCannotBeAWord() {
         var engine = VietEngine()
         do { let result = engine.seed(displayed: "Sunrisee".unicodeScalars); #expect(!result) }   // 8 letters (D33)

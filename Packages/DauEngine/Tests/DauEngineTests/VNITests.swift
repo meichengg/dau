@@ -28,7 +28,7 @@ struct VNITests {
 
     /// D35: 7 on "uo" gives "uơ" at the end of the word (thuở), "ươ" once a letter follows.
     @Test(arguments: [
-        Case("uo7", "uơ"), Case("uo7n", "ươn"), Case("u7o", "ưo"), Case("u7on", "ươn"),
+        Case("uo7", "uơ"), Case("uo7n", "ươn"), Case("u7o", "uơ"), Case("u7on", "ươn"),   // D35: u7o like Telex uwo
         Case("nguoi72", "người"), Case("thuo73", "thuở"), Case("huo7", "huơ"),
         Case("huo7u", "hươu"), Case("ruou75", "rượu"), Case("truong72", "trường"),
         Case("tuong7", "tương"), Case("u7o7ng", "ương"),

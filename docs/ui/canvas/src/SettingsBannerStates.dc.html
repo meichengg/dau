@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Banner Dấu chưa được bật – sau khi bấm Bật lại</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
+body{margin:0}
+.sw{appearance:none;-webkit-appearance:none;width:40px;height:24px;border-radius:12px;background:#c7c7cc;margin:0;position:relative;flex:none;cursor:default}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:10px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sw:checked{background:var(--acc)}
+.sw:checked::after{left:18px}
+.pop{all:unset;box-sizing:border-box;height:26px;padding:0 10px 0 12px;border-radius:999px;background:#fff;border:1px solid rgba(0,0,0,.12);box-shadow:0 1px 1px rgba(0,0,0,.06);font-size:13px;display:inline-flex;align-items:center;gap:6px;color:#1d1d1f;cursor:default;white-space:nowrap}
+.btn{all:unset;box-sizing:border-box;height:30px;padding:0 16px;border-radius:999px;font-size:13px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;background:rgba(0,0,0,.06);color:#1d1d1f;cursor:default;white-space:nowrap;text-decoration:none}
+.btn.pri{background:var(--acc);color:#fff}
+.btn.danger{color:#b42318}
+.seg{display:flex;padding:2px;border-radius:999px;background:rgba(0,0,0,.07);gap:2px}
+.sg{all:unset;box-sizing:border-box;flex:1;height:26px;padding:0 14px;border-radius:999px;font-size:13px;display:flex;align-items:center;justify-content:center;color:#1d1d1f;cursor:default;white-space:nowrap}
+.sg.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15);font-weight:600}
+.card{background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06)}
+.row{display:flex;align-items:center;gap:12px;min-height:48px;padding:10px 16px;box-sizing:border-box;font-size:13px;color:#1d1d1f}
+.sep{height:1px;background:rgba(0,0,0,.07);margin-left:16px}
+.hint{font-size:12px;color:#6e6e73;line-height:1.4}
+.sec{font-size:13px;font-weight:600;color:#1d1d1f;padding:0 4px}
+.side{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:9px;height:32px;padding:0 8px;border-radius:9px;font-size:13px;color:#1d1d1f;cursor:default;text-decoration:none}
+.side.on{background:var(--acc);color:#fff;font-weight:500}
+.tile{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex:none}
+.kc{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 6px;box-sizing:border-box;border-radius:6px;background:#fff;border:1px solid rgba(0,0,0,.14);box-shadow:0 1px 0 rgba(0,0,0,.12);font-size:12px;color:#1d1d1f}
+.chip{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;font-size:12px;background:rgba(0,0,0,.06);color:#3a3a3c}
+.mi{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:6px;width:100%;height:26px;padding:0 10px;border-radius:7px;font-size:13px;color:#1d1d1f;cursor:default}
+.mi.on{background:var(--acc);color:#fff}
+.mk{width:14px;flex:none;display:inline-flex}
+.k{margin-left:auto;color:#6e6e73;font-size:12px}
+
+</style>
+</helmet>
+<div style="width: 760px; height: 560px; box-sizing: border-box; padding: 32px; background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; display: flex; flex-direction: column; gap: 18px; --acc: {{accent}}"><h1 style="margin: 0; font-size: 17px; font-weight: 700; color: #1d1d1f">Banner “Dấu chưa được bật” — sau khi bấm Bật lại</h1>
+<div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; font-weight: 600; color: #5e5e63; padding: 0 4px">Đang chờ</span>
+<section class="card" role="status" style="width: 468px; background: #f7f7f7; border: none; border-radius: 11px; padding: 10px; display: flex; align-items: center; gap: 10px"><span style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex: none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 3a9 9 0 1 1-9 9"></path><path d="M3 12a9 9 0 0 1 9-9" opacity="0.25"></path></svg></span><div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; font-weight: 600; color: rgba(0,0,0,.85)">Đang chờ bạn bấm Allow</span><span style="font-size: 11px; line-height: 16px; color: rgba(0,0,0,.5)">Hộp thoại nằm trong cửa sổ System Settings. Bấm Allow để bật Dấu.</span></div><button class="btn" style="height: 24px; padding: 0 11px; border-radius: 7px; flex: none">Thử lại</button></section></div><div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; font-weight: 600; color: #5e5e63; padding: 0 4px">Chưa bật được</span>
+<section class="card" role="status" style="width: 468px; background: #f7f7f7; border: none; border-radius: 11px; padding: 10px; display: flex; align-items: center; gap: 10px"><span class="tile" style="width: 28px; height: 28px; border-radius: 7px; background: #ff8d28"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 3.9L1.9 18.5A2 2 0 0 0 3.6 21.5h16.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" fill="#fff"></path><path d="M12 9v5" stroke="#ff8d28" stroke-width="2.2" stroke-linecap="round"></path><circle cx="12" cy="17.4" r="1.25" fill="#ff8d28"></circle></svg></span><div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; font-weight: 600; color: rgba(0,0,0,.85)">Chưa bật được Dấu</span><span style="font-size: 11px; line-height: 16px; color: rgba(0,0,0,.5)">Bấm Thử lại rồi Allow, hoặc tự thêm: System Settings › Keyboard › Input Sources › Edit… › + › Vietnamese › Dấu.</span></div><button class="btn" style="height: 24px; padding: 0 11px; border-radius: 7px; flex: none">Thử lại</button></section></div><div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; font-weight: 600; color: #5e5e63; padding: 0 4px">Đã bật</span>
+<section class="card" role="status" style="width: 468px; background: #f7f7f7; border: none; border-radius: 11px; padding: 10px; display: flex; align-items: center; gap: 10px"><span class="tile" style="width: 28px; height: 28px; border-radius: 14px; background: #34c759"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; font-weight: 600; color: rgba(0,0,0,.85)">Đã bật Dấu</span><span style="font-size: 11px; line-height: 16px; color: rgba(0,0,0,.5)">Chọn Dấu trên menu nguồn đầu vào, hoặc nhấn ⌃Space để chuyển giữa Dấu và “U.S.”</span></div><button class="btn" style="height: 24px; padding: 0 11px; border-radius: 7px; flex: none">Ẩn</button></section></div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0A64D8","options":["#0A64D8","#7A3FD1","#C2410C","#1F7A4D"]},"$preview":{"width":760,"height":560}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent ?? '#0A64D8' };
+}
+}
+</script>
+</body>
+</html>

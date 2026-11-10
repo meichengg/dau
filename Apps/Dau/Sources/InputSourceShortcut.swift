@@ -65,7 +65,7 @@ struct InputSourceShortcut: Equatable, Sendable {
     var inlineText: String {
         let combo = keys.joined()
         switch (combo.isEmpty, globeKey) {
-        case (false, true): return String(localized: "\(combo) hoặc 🌐")
+        case (false, true): return String(localized: "\(combo) or 🌐")
         case (true, true): return "🌐"
         default: return combo
         }

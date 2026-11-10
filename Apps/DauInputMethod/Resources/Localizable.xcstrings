@@ -1,13 +1,13 @@
 {
-  "sourceLanguage" : "vi",
+  "sourceLanguage" : "en",
   "strings" : {
-    "Cài đặt Dấu…" : {
+    "Dấu Settings…" : {
       "comment" : "Input menu: opens the Dấu app (Settings window).",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cài đặt Dấu…"
+            "value" : "Dấu Settings…"
           }
         },
         "vi" : {
@@ -18,30 +18,19 @@
         }
       }
     },
-    "Kiểu gõ" : {
-      "comment" : "Input menu: header of the typing method group.",
+    "Simple Telex" : {
+      "comment" : "Input menu: typing method name (D29).",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kiểu gõ"
+            "value" : "Simple Telex"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kiểu gõ"
-          }
-        }
-      }
-    },
-    "Mở %@…" : {
-      "comment" : "Input menu: opens System Settings › Keyboard (the name is macOS's own, D38).",
-      "localizations" : {
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mở %@…"
+            "value" : "Telex đơn giản"
           }
         }
       }
@@ -59,23 +48,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Telex"
-          }
-        }
-      }
-    },
-    "Telex đơn giản" : {
-      "comment" : "Input menu: typing method name (D29).",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Telex đơn giản"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Telex đơn giản"
           }
         }
       }

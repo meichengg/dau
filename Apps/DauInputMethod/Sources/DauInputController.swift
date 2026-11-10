@@ -73,7 +73,7 @@ final class DauInputController: IMKInputController {
             // the cursor (D4: reset, no restore).
             let committed = resetComposition(client: sender)
             inPlace.noteEvent(at: event.timestamp)
-            record(KeyResult(kind: committed ? .commit : .reset), start: start)
+            record(KeyResult(kind: committed ? .commit : .reset), start: start, eventTime: event.timestamp)
             return false
         default:
             return false
@@ -98,12 +98,14 @@ final class DauInputController: IMKInputController {
             result = KeyResult(consumed: outcome.consumed, kind: outcome.kind)
             #if DEBUG
             result.diag = outcome.attempt.map(ReplaceDiag.init)
+            result.d20 = outcome.d20
+            result.seedDiffers = outcome.seedDiffers
             #endif
         }
         result.selectedRangeNs = timed.selectedRangeNs
         result.insertTextNs = timed.callNs
         result.readNs = timed.readNs
-        record(result, start: start)
+        record(result, start: start, eventTime: event.timestamp)
         #if DEBUG
         // After the timing is recorded, so the extra selectedRange is not measured.
         if perf.enabled, let diag = result.diag { ReplaceDiag.log(diag, kind: result.kind, client: client, app: clientApp) }
@@ -121,6 +123,9 @@ final class DauInputController: IMKInputController {
         #if DEBUG
         /// Positions of the last replacement attempt of this key (Debug diagnostics).
         var diag: ReplaceDiag?
+        /// D20 read of this key (Debug perf log).
+        var d20: InPlaceComposer.D20Trace?
+        var seedDiffers: Bool?
         #endif
     }
 
@@ -142,12 +147,29 @@ final class DauInputController: IMKInputController {
         return result
     }
 
-    private func record(_ result: KeyResult, start: UInt64) {
+    /// `start`: `PerfLog.now()` when `handle` began; `eventTime`: the event's `timestamp`.
+    private func record(_ result: KeyResult, start: UInt64, eventTime: TimeInterval) {
+        var extra = ""
+        #if DEBUG
+        if perf.enabled {
+            // What a D20 read did on this key. Words and numbers only, never text (D8).
+            if let t = result.d20 {
+                extra = " d20=\(t.trigger.rawValue) seeded=\(t.seeded ? 1 : 0)"
+            } else {
+                extra = " d20=none"
+            }
+            // Seeded word differs from the unseeded one (any key while that word lasts).
+            extra += " diff=\(result.seedDiffers.map { $0 ? "1" : "0" } ?? "-")"
+        }
+        #endif
         perf.record(result.kind,
+                    startNs: start,
+                    eventNs: PerfLog.eventNs(eventTime),
                     handleNs: PerfLog.now() &- start,
                     selectedRangeNs: result.selectedRangeNs,
                     insertTextNs: result.insertTextNs,
                     readNs: result.readNs,
+                    extra: extra,
                     app: clientApp)
     }
 
@@ -372,29 +394,24 @@ final class DauInputController: IMKInputController {
     override func menu() -> NSMenu! {
         let current = settings.typingMethod
         return onMain { () -> NSMenu in
+            // The system puts these under its own "Dấu" heading and ends the input menu
+            // with its "Open Keyboard Settings…": no heading of ours, no item of ours for
+            // Keyboard settings (N1; artboard Main, canvas version 106).
             let menu = NSMenu()
             menu.autoenablesItems = false
-            let header = NSMenuItem(title: String(localized: "Kiểu gõ", comment: "Input menu: header of the typing method group."),
-                                    action: nil, keyEquivalent: "")
-            header.isEnabled = false
-            menu.addItem(header)
             let methods: [(String, DauSettings.TypingMethod, Selector)] = [
                 (String(localized: "Telex", comment: "Input menu: typing method name."), .telex, #selector(selectTelex(_:))),
                 (String(localized: "VNI", comment: "Input menu: typing method name."), .vni, #selector(selectVNI(_:))),
-                (String(localized: "Telex đơn giản", comment: "Input menu: typing method name (D29)."), .simpleTelex, #selector(selectSimpleTelex(_:))),
+                (String(localized: "Simple Telex", comment: "Input menu: typing method name (D29)."), .simpleTelex, #selector(selectSimpleTelex(_:))),
             ]
             for (title, method, action) in methods {
                 let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
                 item.state = method == current ? .on : .off
-                item.indentationLevel = 1
                 menu.addItem(item)
             }
             menu.addItem(.separator())
-            menu.addItem(NSMenuItem(title: String(localized: "Cài đặt Dấu…", comment: "Input menu: opens the Dấu app (Settings window)."),
+            menu.addItem(NSMenuItem(title: String(localized: "Dấu Settings…", comment: "Input menu: opens the Dấu app (Settings window)."),
                                     action: #selector(openHostApp(_:)), keyEquivalent: ""))
-            // N4: only open the right System Settings pane; never change settings.
-            menu.addItem(NSMenuItem(title: String(localized: "Mở \(SystemUINames.system().systemSettings)…", comment: "Input menu: opens System Settings › Keyboard (the name is macOS's own, D38)."),
-                                    action: #selector(openKeyboardSettings(_:)), keyEquivalent: ""))
             return menu
         }
     }
@@ -419,11 +436,6 @@ final class DauInputController: IMKInputController {
     /// "Cài đặt Dấu…": opens the host app, whose main window is Settings (UI.md).
     @objc func openHostApp(_ sender: Any?) {
         _ = onMain { HostApp.open(logger: settingsLogger) }
-    }
-
-    @objc func openKeyboardSettings(_ sender: Any?) {
-        guard let url = URL(string: "x-apple.systempreferences:com.apple.Keyboard-Settings.extension") else { return }
-        _ = onMain { NSWorkspace.shared.open(url) }
     }
 
     /// Runs `body` on the main actor if already on the main thread; returns nil otherwise
